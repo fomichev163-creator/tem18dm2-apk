@@ -1,0 +1,6 @@
+{
+  "appId": "ru.rzd.tem18dm.simulator",
+  "appName": "ТЭМ18ДМ Схема Ш1-Ш2",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
