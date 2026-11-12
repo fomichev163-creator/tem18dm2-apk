@@ -2,26 +2,24 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
-  <title>ТЭМ18ДМ с ЭСУВТ — Детальный интерактивный тренажёр</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=4.0, user-scalable=yes">
+  <title>ТЭМ18ДМ с ЭСУВТ — Точная заводская схема (Интерактив)</title>
   <style>
     :root {
-      --bg-dark: #070b14;
+      --bg-dark: #070a12;
       --bg-card: #111827;
       --bg-panel: #1e293b;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --accent: #38bdf8;
-      --wire-off: #334155;
-      --wire-on: #ff2a2a;
-      --wire-power: #f59e0b;
-      --coil-on: #22c55e;
-      --fault: #ef4444;
+      --wire-red: #991b1b;
+      --wire-green: #166534;
+      --wire-blue: #1e40af;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-dark);
       color: var(--text-main);
       display: flex;
@@ -31,26 +29,29 @@
 
     header {
       background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
-      padding: 10px 16px;
+      padding: 10px 14px;
       border-bottom: 1px solid #334155;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
     }
-    .title-group h1 { font-size: 1.1rem; color: var(--accent); }
-    .title-group span { font-size: 0.78rem; color: var(--text-muted); }
+    .title-group h1 { font-size: 1.05rem; color: var(--accent); }
+    .title-group span { font-size: 0.76rem; color: var(--text-muted); }
 
-    .legend {
-      display: flex;
-      gap: 12px;
-      font-size: 0.75rem;
-      color: #cbd5e1;
-      flex-wrap: wrap;
+    .header-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .file-btn {
+      background: #0369a1;
+      color: #fff;
+      padding: 6px 11px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid #38bdf8;
     }
-    .legend-item { display: flex; align-items: center; gap: 5px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .file-btn input { display: none; }
 
     .tabs-bar {
       display: flex;
@@ -62,7 +63,7 @@
       background: transparent;
       color: var(--text-muted);
       border: none;
-      padding: 11px 15px;
+      padding: 10px 14px;
       font-size: 0.82rem;
       font-weight: 600;
       white-space: nowrap;
@@ -74,252 +75,302 @@
     .tab-btn.active {
       color: var(--accent);
       border-bottom-color: var(--accent);
-      background: rgba(56, 189, 248, 0.1);
+      background: rgba(56, 189, 248, 0.12);
     }
 
     main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 10px;
-      gap: 10px;
-      max-width: 1400px;
+      padding: 8px;
+      gap: 8px;
+      max-width: 1500px;
       width: 100%;
       margin: 0 auto;
     }
 
     .controls-bar {
       background: var(--bg-card);
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 8px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
       border: 1px solid #334155;
     }
-    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
     .btn {
       background: var(--bg-panel);
       color: var(--text-main);
       border: 1px solid #475569;
-      padding: 8px 14px;
+      padding: 7px 12px;
       border-radius: 6px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 600;
       cursor: pointer;
-      transition: 0.15s;
     }
     .btn:hover { background: #334155; }
     .btn.primary { background: #0284c7; border-color: #38bdf8; }
-    .btn.primary:hover { background: #0369a1; }
     .btn.auto-active { background: #dc2626; border-color: #f87171; }
-    .btn.fault-clear { background: #7c2d12; border-color: #f97316; display: none; }
+    .btn.fault-btn { background: #991b1b; border-color: #f87171; display: none; }
 
     .step-badge {
-      font-size: 0.88rem;
+      font-size: 0.85rem;
       font-weight: 700;
       color: #fbbf24;
-      background: rgba(245, 158, 11, 0.12);
-      padding: 6px 12px;
+      background: rgba(245, 158, 11, 0.14);
+      padding: 5px 12px;
       border-radius: 6px;
-      border: 1px solid rgba(245, 158, 11, 0.35);
+      border: 1px solid rgba(245, 158, 11, 0.4);
     }
 
-    /* Контейнер детального чертежа */
-    .canvas-box {
-      background: #04070d;
+    /* Рабочее поле заводской схемы */
+    .canvas-wrap {
+      background: #060911;
       background-image: 
-        radial-gradient(rgba(51, 65, 85, 0.35) 1px, transparent 1px);
-      background-size: 20px 20px;
+        linear-gradient(rgba(30, 41, 59, 0.45) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 41, 59, 0.45) 1px, transparent 1px);
+      background-size: 25px 25px;
       border: 1px solid #334155;
       border-radius: 10px;
       overflow: auto;
-      box-shadow: inset 0 0 40px rgba(0,0,0,0.9);
+      position: relative;
+      max-height: 64vh;
+      min-height: 430px;
+      box-shadow: inset 0 0 35px rgba(0,0,0,0.85);
+    }
+    .canvas-wrap.light-paper {
+      background: #f8fafc;
+      background-image: 
+        linear-gradient(rgba(203, 213, 225, 0.6) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(203, 213, 225, 0.6) 1px, transparent 1px);
+    }
+
+    .stage-inner {
+      position: relative;
+      width: 1350px;
+      height: 760px;
+      transform-origin: top left;
+    }
+
+    #bgPhoto {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0.35;
+      display: none;
+      pointer-events: none;
     }
 
     svg {
-      display: block;
+      position: relative;
+      z-index: 2;
       width: 100%;
-      min-width: 1080px;
-      height: auto;
+      height: 100%;
+      display: block;
     }
 
-    /* Провода и анимация тока */
-    .wire-base {
+    /* Заводские линии проводов по цветам оригинала */
+    .f-wire {
       fill: none;
-      stroke: var(--wire-off);
-      stroke-width: 2.5;
+      stroke-width: 2.2;
       stroke-linecap: round;
       stroke-linejoin: round;
-      transition: stroke 0.25s;
+      transition: stroke 0.25s, opacity 0.25s;
     }
-    .wire-base.power-thick { stroke-width: 4; }
-    .wire-base.energized {
-      stroke: #991b1b;
-    }
-    .wire-flow {
+    .f-wire.red { stroke: #7f1d1d; }
+    .f-wire.green { stroke: #14532d; }
+    .f-wire.blue { stroke: #1e3a8a; }
+    .f-wire.black { stroke: #475569; }
+    .f-wire.power { stroke: #991b1b; stroke-width: 3.8; }
+
+    .light-paper .f-wire.red { stroke: #fca5a5; }
+    .light-paper .f-wire.green { stroke: #86efac; }
+    .light-paper .f-wire.blue { stroke: #93c5fd; }
+    .light-paper .f-wire.black { stroke: #cbd5e1; }
+
+    /* Подсвеченный провод под напряжением */
+    .f-wire.energized.red { stroke: #ef4444; }
+    .f-wire.energized.green { stroke: #22c55e; }
+    .f-wire.energized.blue { stroke: #38bdf8; }
+    .f-wire.energized.black { stroke: #eab308; }
+    .f-wire.energized.power { stroke: #f97316; }
+
+    /* Анимация бегущего тока */
+    .f-flow {
       fill: none;
       stroke: transparent;
-      stroke-width: 3;
+      stroke-width: 3.5;
       stroke-linecap: round;
       stroke-linejoin: round;
       pointer-events: none;
     }
-    .wire-flow.active {
-      stroke: #ff3b3b;
+    .f-flow.active {
+      stroke: #ff2a2a;
       stroke-dasharray: 10 8;
-      animation: currentFlow 0.45s linear infinite;
-      filter: drop-shadow(0 0 6px rgba(255, 50, 50, 0.9));
+      animation: runCurrent 0.42s linear infinite;
+      filter: drop-shadow(0 0 6px #ff0000);
     }
-    .wire-flow.power-active {
+    .f-flow.active-green {
+      stroke: #4ade80;
+      stroke-dasharray: 10 8;
+      animation: runCurrent 0.42s linear infinite;
+      filter: drop-shadow(0 0 6px #22c55e);
+    }
+    .f-flow.active-blue {
+      stroke: #38bdf8;
+      stroke-dasharray: 10 8;
+      animation: runCurrent 0.42s linear infinite;
+      filter: drop-shadow(0 0 6px #0284c7);
+    }
+    .f-flow.active-power {
       stroke: #fbbf24;
-      stroke-width: 4.5;
+      stroke-width: 5;
       stroke-dasharray: 14 10;
-      animation: currentFlow 0.35s linear infinite;
-      filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.9));
+      animation: runCurrent 0.32s linear infinite;
+      filter: drop-shadow(0 0 8px #f59e0b);
     }
 
-    @keyframes currentFlow {
+    @keyframes runCurrent {
       to { stroke-dashoffset: -18; }
     }
 
-    /* Шины питания */
-    .bus-plus { stroke: #dc2626; stroke-width: 4; }
-    .bus-minus { stroke: #2563eb; stroke-width: 4; }
-    .sec-header {
-      fill: #38bdf8;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
+    /* Узловые точки пайки/соединений */
+    .junc-dot { fill: #64748b; transition: 0.25s; }
+    .junc-dot.on { fill: #ff3b3b; r: 4.5; filter: drop-shadow(0 0 4px #ff0000); }
 
-    /* Стили аппаратов (катушки, контакты, клеммы) */
-    .comp-group { cursor: pointer; }
-    .comp-group:hover .comp-shape { stroke: #38bdf8; }
+    /* Аппараты на чертеже */
+    .app-node { cursor: pointer; }
+    .app-node:hover .app-box, .app-node:hover .app-blade { stroke: #38bdf8; }
 
-    .comp-shape {
+    .app-box {
       fill: #0f172a;
       stroke: #94a3b8;
       stroke-width: 2;
-      transition: all 0.3s ease;
+      transition: 0.25s;
     }
-    .comp-group.on .comp-shape {
-      stroke: #22c55e;
+    .light-paper .app-box { fill: #ffffff; stroke: #334155; }
+
+    .app-node.on .app-box {
       fill: #052e16;
-      filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.65));
+      stroke: #22c55e;
+      stroke-width: 2.5;
+      filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.7));
     }
-    .comp-group.fault .comp-shape {
-      stroke: #ef4444 !important;
+    .light-paper .app-node.on .app-box { fill: #dcfce7; stroke: #16a34a; }
+
+    .app-node.fault .app-box {
       fill: #450a0a !important;
-      stroke-dasharray: 4 2;
+      stroke: #ef4444 !important;
+      stroke-dasharray: 3 2;
     }
 
-    /* Подвижный нож контакта */
-    .contact-blade {
+    .app-blade {
       stroke: #cbd5e1;
       stroke-width: 2.5;
       stroke-linecap: round;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
-      transform-box: fill-box;
-      transform-origin: left center;
+      transition: all 0.28s ease;
     }
-    .comp-group.on .contact-blade {
+    .light-paper .app-blade { stroke: #1e293b; }
+    .app-node.on .app-blade {
       stroke: #4ade80;
       filter: drop-shadow(0 0 5px #22c55e);
     }
-    .comp-group.fault .contact-blade {
-      stroke: #ef4444 !important;
-    }
+    .app-node.fault .app-blade { stroke: #ef4444 !important; }
 
-    .comp-label {
+    /* Тексты и номера проводов */
+    .lbl-main {
       fill: #f8fafc;
-      font-size: 11.5px;
-      font-weight: bold;
+      font-size: 11px;
+      font-weight: 700;
       text-anchor: middle;
       pointer-events: none;
     }
-    .comp-sub {
+    .light-paper .lbl-main { fill: #0f172a; }
+
+    .lbl-sub {
       fill: #94a3b8;
-      font-size: 9.5px;
+      font-size: 9px;
       text-anchor: middle;
       pointer-events: none;
     }
-    .wire-tag {
+    .light-paper .lbl-sub { fill: #475569; }
+
+    .w-num {
       fill: #fde047;
       font-family: monospace;
-      font-size: 10px;
+      font-size: 9.5px;
+      font-weight: 600;
       text-anchor: middle;
       pointer-events: none;
     }
-    .term-circle {
-      fill: #0f172a;
-      stroke: #38bdf8;
-      stroke-width: 1.8;
-    }
-    .term-text {
-      fill: #7dd3fc;
-      font-size: 9.5px;
-      font-family: monospace;
-      text-anchor: middle;
-    }
+    .light-paper .w-num { fill: #b91c1c; font-weight: 700; }
 
-    /* Панель описания */
+    .block-frame {
+      fill: rgba(15, 23, 42, 0.55);
+      stroke: #475569;
+      stroke-width: 1.8;
+      stroke-dasharray: 6 4;
+    }
+    .light-paper .block-frame { fill: rgba(241, 245, 249, 0.7); stroke: #1e40af; }
+
+    /* Инфо-панель */
     .info-panel {
       background: var(--bg-card);
       border-radius: 8px;
-      padding: 14px;
+      padding: 12px 14px;
       border: 1px solid #334155;
       border-left: 4px solid var(--accent);
     }
-    .info-panel.fault-alert {
-      border-left-color: #ef4444;
-      background: #1f1215;
-    }
-    .info-title { font-size: 1rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+    .info-panel.fault-mode { border-left-color: #ef4444; background: #1f1215; }
+    .info-title { font-size: 0.98rem; font-weight: 700; color: var(--accent); margin-bottom: 5px; }
     .info-chain {
       font-family: monospace;
-      background: #070b14;
-      padding: 9px 12px;
+      background: #05080f;
+      padding: 8px 10px;
       border-radius: 6px;
       color: #fde047;
-      font-size: 0.83rem;
-      line-height: 1.5;
-      margin-bottom: 8px;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      margin-bottom: 6px;
       border: 1px solid #1e293b;
     }
-    .info-desc { font-size: 0.88rem; color: #cbd5e1; line-height: 1.45; }
+    .info-desc { font-size: 0.86rem; color: #cbd5e1; line-height: 1.45; }
 
-    /* Карточки перемычек */
     .jumpers-grid {
       display: none;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 10px;
     }
     .jumper-card {
       background: var(--bg-card);
       border: 1px solid #334155;
-      border-left: 4px solid var(--wire-power);
+      border-left: 4px solid #f59e0b;
       border-radius: 8px;
-      padding: 14px;
+      padding: 12px;
     }
-    .jumper-card h3 { font-size: 0.95rem; color: #fbbf24; margin-bottom: 8px; }
-    .jumper-card p { font-size: 0.84rem; color: #cbd5e1; line-height: 1.45; margin-bottom: 6px; }
+    .jumper-card h3 { font-size: 0.92rem; color: #fbbf24; margin-bottom: 6px; }
+    .jumper-card p { font-size: 0.82rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 5px; }
   </style>
 </head>
 <body>
 
 <header>
   <div class="title-group">
-    <h1>ТЭМ18ДМ с ЭСУВТ и УСТА — Полные электрические схемы</h1>
-    <span>Кликните по любому реле или контакту на схеме для имитации обрыва (поиска неисправности)</span>
+    <h1>ТЭМ18ДМ с ЭСУВТ — Заводская схема с живой анимацией тока</h1>
+    <span>Точная топология по листам схемы • Клик по любому контакту/катушке имитирует обрыв</span>
   </div>
-  <div class="legend">
-    <div class="legend-item"><span class="dot" style="background:#ff3b3b"></span> Ток управления (75В)</div>
-    <div class="legend-item"><span class="dot" style="background:#fbbf24"></span> Силовой ток</div>
-    <div class="legend-item"><span class="dot" style="background:#22c55e"></span> Аппарат включен</div>
-    <div class="legend-item"><span class="dot" style="background:#ef4444"></span> Обрыв (Клик по элементу)</div>
+  <div class="header-actions">
+    <button class="btn" onclick="togglePaperTheme()">🌗 Фон: Тёмный / Бумажный чертёж</button>
+    <label class="file-btn">
+      🖼 Подложить скриншот схемы
+      <input type="file" accept="image/*" onchange="loadBgPhoto(event)">
+    </label>
   </div>
 </header>
 
@@ -331,18 +382,23 @@
       <button class="btn" onclick="prevStep()">◀ Шаг назад</button>
       <button class="btn primary" onclick="nextStep()">Шаг вперёд ▶</button>
       <button class="btn" id="autoBtn" onclick="toggleAuto()">⏯ Автозапуск</button>
+      <button class="btn" onclick="zoomCanvas(1.2)">🔍 +</button>
+      <button class="btn" onclick="zoomCanvas(0.85)">🔎 -</button>
       <button class="btn" onclick="resetScheme()">↺ Сброс</button>
-      <button class="btn fault-clear" id="clearFaultsBtn" onclick="clearAllFaults()">🛠 Устранить обрывы</button>
+      <button class="btn fault-btn" id="clearFaultBtn" onclick="clearFaults()">🛠 Устранить обрыв</button>
     </div>
     <div class="step-badge" id="stepCounter">Шаг 1 / 1</div>
   </div>
 
-  <div class="canvas-box" id="canvasBox">
-    <svg id="schematicSvg" viewBox="0 0 1120 620"></svg>
+  <div class="canvas-wrap" id="canvasWrap">
+    <div class="stage-inner" id="stageInner">
+      <img id="bgPhoto" alt="">
+      <svg id="mainSvg" viewBox="0 0 1350 760"></svg>
+    </div>
   </div>
 
   <div class="info-panel" id="infoPanel">
-    <div class="info-title" id="stepTitle">Загрузка...</div>
+    <div class="info-title" id="stepTitle"></div>
     <div class="info-chain" id="stepChain"></div>
     <div class="info-desc" id="stepDesc"></div>
   </div>
@@ -351,1124 +407,106 @@
 </main>
 
 <script>
-// Полная база детальных многорядных схем ТЭМ18ДМ
-const SCHEMES = [
+// ============================================================================
+// ТОЧНАЯ ЗАВОДСКАЯ ТОПОЛОГИЯ ПО ПРИСЛАННЫМ ЛИСТАМ СХЕМЫ ТЭМ18ДМ С ЭСУВТ
+// ============================================================================
+const FACTORY_SHEETS = [
   {
-    id: "start",
-    title: "1. Подготовка и Пуск дизеля",
-    height: 620,
-    headers: [
-      { y: 22, text: "ЦЕПИ УПРАВЛЕНИЯ И АВТОМАТИКИ ПУСКА ДИЗЕЛЯ (75 В)" },
-      { y: 405, text: "ВСПОМОГАТЕЛЬНЫЕ СИЛОВЫЕ ЦЕПИ (НАСОСЫ ТН, МН) И СИЛОВАЯ ПУСКОВАЯ ЦЕПЬ ГЕНЕРАТОРА" }
+    id: "sheet_start",
+    title: "1. Цепи пуска дизеля (Красный участок + БЭЛ + ОП)",
+    // Структурные рамки как на оригинальном чертеже (БЭЛ ХР1, ПУ1, Узел ОП, Шины)
+    frames: [
+      { x: 20, y: 20, w: 125, h: 310, label: "БЭЛ (Разъём ХР1)" },
+      { x: 20, y: 365, w: 145, h: 350, label: "ПУ1 (SB12, SB7, SB8, SA15, SA16)" },
+      { x: 540, y: 30, w: 590, h: 175, label: "УЗЕЛ ОСЛАБЛЕНИЯ ПОЛЯ Ш1, Ш2 (Голубой контур)" },
+      { x: 185, y: 225, w: 1090, h: 505, label: "ЦЕПИ ПУСКА И РАБОТЫ ДИЗЕЛЯ (Красный контур листа)" }
     ],
-    // Каждая ветка (rung) идет слева направо от x=60 (+Шина) до x=1040 (-Шина)
-    rungs: [
-      {
-        id: "r1", y: 65, power: false,
-        wires: [
-          { x1: 60, x2: 140, num: "пр.72" },
-          { x1: 200, x2: 310, num: "пр.119,335" },
-          { x1: 370, x2: 500, num: "пр.2772" },
-          { x1: 560, x2: 720, num: "пр.1918" },
-          { x1: 780, x2: 900, num: "пр.2847" },
-          { x1: 960, x2: 1040, num: "пр.2773 (2/6)" }
-        ],
-        terms: [{ x: 255, label: "14/2" }, { x: 840, label: "14/4" }],
-        comps: [
-          { id: "rb_pp2", x: 170, type: "fuse", label: "РБ+ПП2", sub: "125А" },
-          { id: "sf1", x: 340, type: "switch", label: "SF1+SB13", sub: "Упр.общее", normClosed: false },
-          { id: "kbu", x: 530, type: "coil", label: "КБУ", sub: "Блок.упр." },
-          { id: "kbu_k", x: 750, type: "no", label: "з.к. КБУ", sub: "Рейка 1/1" },
-          { id: "bel_0", x: 930, type: "no", label: "БЭЛ (к.4)", sub: "0 поз. КМ" }
-        ]
-      },
-      {
-        id: "r2", y: 130, power: false,
-        wires: [
-          { x1: 60, x2: 150, num: "14/4 пр.246" },
-          { x1: 210, x2: 330, num: "пр.430" },
-          { x1: 390, x2: 520, num: "пр.700" },
-          { x1: 580, x2: 720, num: "пр.699" },
-          { x1: 780, x2: 900, num: "пр.692" },
-          { x1: 960, x2: 1040, num: "пр.704 (2/11)" }
-        ],
-        terms: [{ x: 270, label: "15/8" }, { x: 455, label: "3/30" }],
-        comps: [
-          { id: "sb7", x: 180, type: "btn", label: "SB7 «Пуск»", sub: "или з.к.РУ12" },
-          { id: "sb8", x: 360, type: "nc", label: "SB8 Стоп", sub: "ПУ1 / ПУ2" },
-          { id: "ru22_nc", x: 550, type: "nc", label: "р.к. РУ22", sub: "Картер <29мм" },
-          { id: "pcht_nc", x: 750, type: "nc", label: "р.к. ПЧТ", sub: "Защита ЧВ" },
-          { id: "ru12", x: 930, type: "coil", label: "РУ12", sub: "Пуск.реле" }
-        ]
-      },
-      {
-        id: "r3", y: 195, power: false,
-        wires: [
-          { x1: 60, x2: 160, num: "пр.805,734" },
-          { x1: 220, x2: 360, num: "пр.2782" },
-          { x1: 420, x2: 560, num: "пр.561,581" },
-          { x1: 620, x2: 750, num: "пр.453,242" },
-          { x1: 810, x2: 900, num: "пр.1564" },
-          { x1: 960, x2: 1040, num: "минус 2/10" }
-        ],
-        terms: [],
-        comps: [
-          { id: "ru12_k1", x: 190, type: "no", label: "з.к. РУ12", sub: "пр.734-2782" },
-          { id: "ru16_nc", x: 390, type: "nc", label: "р.к. РУ16", sub: "Блок.боксов." },
-          { id: "ktn_coil", x: 590, type: "coil", label: "КТН", sub: "Конт. ТН" },
-          { id: "ru4_nc1", x: 780, type: "nc", label: "р.к. РУ4", sub: "До запуска" },
-          { id: "ru7_rv2", x: 930, type: "coil", label: "РУ7 + РВ2", sub: "Задержка 6с" }
-        ]
-      },
-      {
-        id: "r4", y: 260, power: false,
-        wires: [
-          { x1: 60, x2: 160, num: "пр.150" },
-          { x1: 220, x2: 360, num: "пр.1732" },
-          { x1: 420, x2: 560, num: "пр.883,1725" },
-          { x1: 620, x2: 750, num: "пр.1516,296" },
-          { x1: 810, x2: 900, num: "пр.1511,603" },
-          { x1: 960, x2: 1040, num: "минус 2/11" }
-        ],
-        terms: [],
-        comps: [
-          { id: "ktn_k1", x: 190, type: "no", label: "з.к. КТН", sub: "Контр. ТН" },
-          { id: "ku17_nc", x: 390, type: "nc", label: "р.к. КУ17", sub: "Дизель стоп" },
-          { id: "rv2_k", x: 590, type: "no", label: "з.к. РВ2", sub: "Замкнут" },
-          { id: "ru28_kmn", x: 780, type: "coil", label: "РУ28+КМН+РВ3", sub: "Прокачка 40с" },
-          { id: "ru29_ru5", x: 930, type: "coil", label: "РВ3(40с)→РУ5", sub: "Пуск разр." }
-        ]
-      },
-      {
-        id: "r5", y: 325, power: false,
-        wires: [
-          { x1: 60, x2: 150, num: "пр.84,454" },
-          { x1: 210, x2: 330, num: "пр.425,337" },
-          { x1: 390, x2: 520, num: "пр.127,239" },
-          { x1: 580, x2: 710, num: "пр.251,3102" },
-          { x1: 770, x2: 890, num: "пр.145,125" },
-          { x1: 950, x2: 1040, num: "пр.580 (2/11)" }
-        ],
-        terms: [{ x: 645, label: "3/1" }],
-        comps: [
-          { id: "ru5_k", x: 180, type: "no", label: "з.к. РУ5", sub: "После 40с" },
-          { id: "kv_nc", x: 360, type: "nc", label: "р.к. КВ", sub: "Тяга откл." },
-          { id: "buk_vpu", x: 550, type: "nc", label: "БУК + ВПУ", sub: "Выведено" },
-          { id: "d1_rer", x: 740, type: "coil", label: "Д1 + РЭР", sub: "Топливо ЭСУВТ" },
-          { id: "sp1_ru4", x: 920, type: "no", label: "SP1(РДМ)→РУ4", sub: "Масло >1.7атм" }
-        ]
-      },
-      // Силовые цепи (внизу)
-      {
-        id: "r6", y: 455, power: true,
-        wires: [
-          { x1: 60, x2: 180, num: "SF2, ПТН(20А)" },
-          { x1: 240, x2: 430, num: "пр.154,519" },
-          { x1: 490, x2: 680, num: "ПМН(125А) пр.84" },
-          { x1: 740, x2: 900, num: "пр.459" },
-          { x1: 960, x2: 1040, num: "-АБ (пр.87)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "ktn_pow", x: 210, type: "no", label: "с.к. КТН", sub: "Силовой" },
-          { id: "tn_mot", x: 460, type: "motor", label: "М Топл. (ТН)", sub: "Давл.топл." },
-          { id: "kmn_pow", x: 710, type: "no", label: "с.к. КМН", sub: "Силовой" },
-          { id: "mn_mot", x: 930, type: "motor", label: "М Масл. (МН)", sub: "Прокачка 40с" }
-        ]
-      },
-      {
-        id: "r7", y: 535, power: true,
-        wires: [
-          { x1: 60, x2: 210, num: "+АБ пр.71,101" },
-          { x1: 270, x2: 480, num: "пр.102, 13" },
-          { x1: 540, x2: 750, num: "Пуск.обм. С1-С2" },
-          { x1: 810, x2: 1040, num: "пр.103,138,105 (-АБ)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "d1_pow", x: 240, type: "no", label: "с.к. Д1", sub: "Пусковой конт." },
-          { id: "gen_arm", x: 510, type: "motor", label: "Якорь Г", sub: "Раскрутка дизеля" },
-          { id: "gen_start_w", x: 780, type: "resistor", label: "Обм. С1-С2", sub: "Сериесная пуск." }
-        ]
-      }
+    // Сегменты проводов с точными изгибами (d), цветом листа и привязкой к условиям питания
+    wires: [
+      // Питание БЭЛ и выход к.4 «Пуск дизеля» (пр.4020 -> 14/4 -> пр.805, 246)
+      { id: "w_bel_p", d: "M 145 70 L 240 70 L 240 245", color: "green", num: "пр.2846 (+75В КБУ)", nx: 195, ny: 62 },
+      { id: "w_bel_4", d: "M 145 245 L 260 245", color: "red", num: "к.4 пр.4020 [14/4]", nx: 202, ny: 237 },
+      { id: "w_805", d: "M 260 245 L 260 420 L 90 420", color: "red", num: "пр.805, 246", nx: 225, ny: 270 },
+
+      // Самопитание РУ12 (пр.805 -> 734 -> з.к.РУ12 -> 733 -> к SB8)
+      { id: "w_734", d: "M 205 245 L 205 310 L 250 310", color: "red", num: "пр.734", nx: 225, ny: 303 },
+      { id: "w_733", d: "M 310 310 L 350 310 L 350 420", color: "red", num: "пр.733 (Самопит.)", nx: 330, ny: 303 },
+
+      // Ветка РУ12: SB7 (ПУ1) -> SB8 ПУ1 -> 15/8 -> пр.7400 -> SB8 ПУ2 -> 3/30 -> пр.700 -> РУ22 -> пр.699 -> ПЧТ -> пр.692 -> РУ12 -> 2/11
+      { id: "w_sb7_out", d: "M 150 420 L 350 420 L 410 420", color: "red", num: "пр.430 [15/8] 7400", nx: 280, ny: 412 },
+      { id: "w_sb8_2", d: "M 470 420 L 580 420", color: "red", num: "пр.7401 [3/30] пр.700", nx: 525, ny: 412 },
+      { id: "w_699", d: "M 640 420 L 760 420", color: "red", num: "пр.699", nx: 700, ny: 412 },
+      { id: "w_692", d: "M 820 420 L 1010 420", color: "red", num: "пр.692", nx: 915, ny: 412 },
+      { id: "w_704", d: "M 1070 420 L 1240 420", color: "red", num: "пр.704 (2/11)", nx: 1155, ny: 412 },
+
+      // Ветка КТН: пр.734 -> з.к.РУ12 -> пр.2782 -> р.к.РУ16 -> пр.561 -> з.к.РУ12 -> пр.575,581 -> КТН -> 2/10
+      { id: "w_ktn_1", d: "M 310 310 L 310 465 L 430 465", color: "red", num: "пр.2782", nx: 370, ny: 457 },
+      { id: "w_ktn_2", d: "M 490 465 L 650 465", color: "red", num: "пр.561", nx: 570, ny: 457 },
+      { id: "w_ktn_3", d: "M 710 465 L 1010 465", color: "red", num: "пр.575, 581", nx: 860, ny: 457 },
+      { id: "w_ktn_m", d: "M 1070 465 L 1240 465", color: "red", num: "пр.587 (2/10)", nx: 1155, ny: 457 },
+
+      // Ветка РУ7 и РВ2: SA15 (Топл.насос) -> пр.148 -> з.к.КТН -> пр.885,453 -> р.к.РУ4 -> пр.248 -> р.к.Ш2 -> пр.242 -> РУ7 + РВ2
+      { id: "w_148", d: "M 150 515 L 360 515", color: "red", num: "пр.148", nx: 255, ny: 507 },
+      { id: "w_885", d: "M 420 515 L 490 515 L 490 265 L 660 265", color: "red", num: "пр.885, 453", nx: 560, ny: 257 },
+      { id: "w_248", d: "M 720 265 L 840 265", color: "red", num: "пр.248", nx: 780, ny: 257 },
+      { id: "w_242", d: "M 900 265 L 1010 265", color: "red", num: "пр.242", nx: 955, ny: 257 },
+      { id: "w_rv2", d: "M 960 265 L 960 330 L 1010 330", color: "red", num: "з.к.РУ7 → пр.1564", nx: 915, ny: 325 },
+      { id: "w_ru7_m", d: "M 1070 265 L 1240 265 M 1070 330 L 1240 330", color: "red", num: "2/5, 2/11", nx: 1155, ny: 257 },
+
+      // Ветка прокачки масла: з.к.КТН -> пр.150 -> р.к.КУ17 -> пр.1732 -> з.к.РВ2 -> пр.1725 -> РУ28
+      { id: "w_150", d: "M 420 515 L 540 515", color: "red", num: "пр.150", nx: 480, ny: 507 },
+      { id: "w_1732", d: "M 600 515 L 720 515", color: "red", num: "пр.1732", nx: 660, ny: 507 },
+      { id: "w_1725", d: "M 780 515 L 1010 515", color: "red", num: "пр.883, 1724, 1725", nx: 895, ny: 507 },
+      { id: "w_ru28_m", d: "M 1070 515 L 1240 515", color: "red", num: "пр.1519 (2/11)", nx: 1155, ny: 507 },
+
+      // Ветка КМН и РВ3 (40с) -> РУ29 -> РУ5: от пр.885 вниз на з.к.РУ28 -> КМН (пр.296) и РВ3 (пр.1516) -> з.к.РВ3 -> РУ29 -> РУ5
+      { id: "w_kmn_in", d: "M 490 515 L 490 565 L 650 565", color: "red", num: "пр.417, 449", nx: 570, ny: 557 },
+      { id: "w_296", d: "M 710 565 L 1010 565", color: "red", num: "пр.296 (КМН) и пр.1516 (РВ3)", nx: 860, ny: 557 },
+      { id: "w_kmn_m", d: "M 1070 565 L 1240 565", color: "red", num: "пр.973 (2/11)", nx: 1155, ny: 557 },
+
+      // Ветка РВ3 (выдержка 40 сек) -> РУ29 -> РУ5
+      { id: "w_rv3_in", d: "M 490 565 L 490 615 L 650 615", color: "red", num: "пр.1512", nx: 570, ny: 607 },
+      { id: "w_1511", d: "M 710 615 L 860 615", color: "red", num: "пр.1511, 1726", nx: 785, ny: 607 },
+      { id: "w_603", d: "M 920 615 L 1010 615", color: "red", num: "з.к.РУ29 → пр.603", nx: 965, ny: 607 },
+      { id: "w_ru5_m", d: "M 1070 615 L 1240 615", color: "red", num: "пр.2779 (2/11)", nx: 1155, ny: 607 },
+
+      // Ветка Д1 и РЭР: пр.454 -> з.к.РУ5 -> пр.425 -> р.к.КВ -> пр.337 -> БУК -> пр.239 -> ВПУ -> пр.251 -> Д1
+      { id: "w_454", d: "M 205 665 L 310 665", color: "red", num: "пр.84, 454", nx: 255, ny: 657 },
+      { id: "w_425", d: "M 370 665 L 470 665", color: "red", num: "пр.425", nx: 420, ny: 657 },
+      { id: "w_337", d: "M 530 665 L 640 665", color: "red", num: "пр.337, 127", nx: 585, ny: 657 },
+      { id: "w_239", d: "M 700 665 L 820 665", color: "red", num: "пр.128, 239", nx: 760, ny: 657 },
+      { id: "w_251", d: "M 880 665 L 1010 665", color: "red", num: "пр.243, 251", nx: 945, ny: 657 },
+      { id: "w_d1_m", d: "M 1070 665 L 1240 665", color: "red", num: "пр.254 (2/6)", nx: 1155, ny: 657 },
+
+      // Ветка SP1 (РДМ), РУ4 и КУ17: пр.575 -> з.к.Д1(133) -> 3/1 -> SP1(145-125) -> РУ4(580) И р.к.Д1(111-112) -> КУ17
+      { id: "w_rdm_1", d: "M 380 710 L 540 710", color: "red", num: "пр.133 [3/1] пр.3102(РЭР), 145", nx: 460, ny: 702 },
+      { id: "w_rdm_2", d: "M 600 710 L 780 710", color: "red", num: "пр.125, 560, 580", nx: 690, ny: 702 },
+      { id: "w_ku17_1", d: "M 840 710 L 1010 710", color: "red", num: "р.к.Д1 пр.111-112", nx: 925, ny: 702 },
+      { id: "w_ku17_m", d: "M 1070 710 L 1240 710", color: "red", num: "пр.973 (2/11)", nx: 1155, ny: 702 },
+
+      // Голубой узел ослабления поля сверху (УСТА -> пр.5013 -> РУ40 -> РВ6 -> Ш1 И пр.5012 -> Ш2)
+      { id: "w_op_1", d: "M 560 90 L 720 90", color: "blue", num: "УСТА пр.5013 [1/22] пр.211", nx: 640, ny: 82 },
+      { id: "w_op_2", d: "M 780 90 L 960 90", color: "blue", num: "з.к.РУ40 пр.2005", nx: 870, ny: 82 },
+      { id: "w_op_3", d: "M 560 155 L 720 155", color: "blue", num: "пр.1714, 2000", nx: 640, ny: 147 },
+      { id: "w_op_4", d: "M 780 155 L 960 155", color: "blue", num: "пр.2001, 1716 (Ш1) / пр.208 (Ш2)", nx: 870, ny: 147 },
+      { id: "w_op_m", d: "M 1020 90 L 1240 90 M 1020 155 L 1240 155", color: "blue", num: "пр.254 (2/5, 2/6)", nx: 1110, ny: 82 }
     ],
-    steps: [
-      {
-        title: "Шаг 1: Включение автомата SF1, кнопки SB13 и контактора КБУ (Подготовка к пуску)",
-        chain: "+АБ → РБ → пр.72 → ПП2(125А) → зажим 14/2 → пр.335 → SF1 «Управление общее» → SB13 → пр.2772 → катушка КБУ → минус 2/6. З.к. КБУ запитывает БЭЛ → на 0 поз. замкнут к.4 БЭЛ (зажим 14/4).",
-        desc: "Замыкается силовой контакт КБУ, подавая питание +75В на общую плюсовую рейку 1/1–1/8 и блок БЭЛ. При нулевой позиции контроллера БЭЛ выдает плюс на зажим 14/4.",
-        activeRungs: ["r1"],
-        onComps: ["rb_pp2", "sf1", "kbu", "kbu_k", "bel_0", "sb8", "ru22_nc", "pcht_nc", "ru16_nc", "ru4_nc1", "ku17_nc", "kv_nc", "buk_vpu"]
-      },
-      {
-        title: "Шаг 2: Нажатие кнопки SB7 «Пуск дизеля 1» → Включение реле РУ12",
-        chain: "Зажим 14/4 → пр.246 → SB7 «Пуск» → р.к. SB8 «Стоп» ПУ1 → зажим 15/8 → пр.7400 → р.к. SB8 ПУ2 → зажим 3/30 → пр.700 → р.к. РУ22 → пр.699 → р.к. ПЧТ → пр.692 → катушка РУ12 → минус 2/11.",
-        desc: "Реле РУ12 включается, замыкает свой контакт (пр.734–2782) в 3-й ветке и становится на самопитание в обход кнопки SB7.",
-        activeRungs: ["r1", "r2"],
-        onComps: ["rb_pp2", "sf1", "kbu", "kbu_k", "bel_0", "sb7", "sb8", "ru22_nc", "pcht_nc", "ru12", "ru12_k1", "ru16_nc", "ru4_nc1", "ku17_nc", "kv_nc", "buk_vpu"]
-      },
-      {
-        title: "Шаг 3: Включение контактора топливного насоса КТН и реле РУ7, РВ2",
-        chain: "Зажим 14/4 → з.к. РУ12 (пр.2782) → р.к. РУ16 → пр.561,581 → катушка КТН → минус 2/10. Через р.к. РУ4 (пр.453-242) включаются РУ7 и реле времени РВ2 (пр.1564). Силовой контакт КТН запускает двигатель ТН.",
-        desc: "Топливоподкачивающий насос (ТН) создает давление топлива в коллекторе. РВ2 замыкает контакт в 4-й ветке и взводит задержку 6 с на отпадание.",
-        activeRungs: ["r1", "r2", "r3", "r6"],
-        onComps: ["rb_pp2", "sf1", "kbu", "kbu_k", "bel_0", "sb8", "ru22_nc", "pcht_nc", "ru12", "ru12_k1", "ru16_nc", "ktn_coil", "ru4_nc1", "ru7_rv2", "ktn_k1", "rv2_k", "ktn_pow", "tn_mot", "ku17_nc", "kv_nc", "buk_vpu"]
-      },
-      {
-        title: "Шаг 4: Предпусковая прокачка масла (40 секунд) — РУ28, КМН, РВ3",
-        chain: "З.к. КТН (пр.150) → р.к. КУ17 (пр.1732) → з.к. РВ2 (пр.883-1725) → катушка РУ28. РУ28 включает контактор КМН (пр.296) и реле времени РВ3 (пр.1516, отсчет 40 сек). По истечении 40 с включаются РУ29 и РУ5 (пр.603).",
-        desc: "Силовой контакт КМН включает маслопрокачивающий насос (МН) от ПМН(125А). Масло заполняет каналы дизеля. Через 40 с РВ3 включает РУ29 и РУ5, замыкая контакт з.к. РУ5 в 5-й ветке.",
-        activeRungs: ["r1", "r2", "r3", "r4", "r6"],
-        onComps: ["rb_pp2", "sf1", "kbu", "kbu_k", "bel_0", "sb8", "ru22_nc", "pcht_nc", "ru12", "ru12_k1", "ru16_nc", "ktn_coil", "ru4_nc1", "ru7_rv2", "ktn_k1", "ku17_nc", "rv2_k", "ru28_kmn", "ru29_ru5", "ru5_k", "ktn_pow", "tn_mot", "kmn_pow", "mn_mot", "kv_nc", "buk_vpu"]
-      },
-      {
-        title: "Шаг 5: Включение пускового контактора Д1, раскрутка дизеля и подача топлива (РЭР → ЭСУВТ)",
-        chain: "Пр.84,454 → з.к. РУ5 → пр.425 → р.к. КВ → пр.337 → БУК (пр.127-128) → ВПУ (пр.239-243) → пр.251 → катушка Д1 и РЭР (пр.3102 → сигнал на 6-й конт. ЭСУВТ пр.3049). При давлении масла >1.7 кгс/см² замыкается SP1 (РДМ) → включается РУ4!",
-        desc: "Силовой контакт Д1 подает ток от АБ на якорь Г и сериесную обмотку С1-С2 (7-я ветка) — коленвал вращается, ЭСУВТ подает топливо. Срабатывание SP1 включает РУ4: размыкается р.к. РУ4 в 3-й ветке, отключая КМН, а через 6 с (задержка РВ2) отключается Д1. Дизель запущен!",
-        activeRungs: ["r1", "r2", "r3", "r5", "r6", "r7"],
-        onComps: ["rb_pp2", "sf1", "kbu", "kbu_k", "bel_0", "sb8", "ru22_nc", "pcht_nc", "ru12", "ru12_k1", "ru16_nc", "ktn_coil", "ru5_k", "kv_nc", "buk_vpu", "d1_rer", "sp1_ru4", "ktn_pow", "tn_mot", "d1_pow", "gen_arm", "gen_start_w"]
-      }
-    ]
-  },
-  {
-    id: "vst",
-    title: "2. Возбуждение ВСТ и заряд АБ",
-    height: 480,
-    headers: [
-      { y: 22, text: "ЦЕПИ УПРАВЛЕНИЯ ВОЗБУЖДЕНИЕМ ВСТ (КУ17, КМ1, РНП)" },
-      { y: 265, text: "СИЛОВАЯ ЦЕПЬ ШИМ УСТА, ОБМОТКИ ВСТ F1-F2 И ЗАРЯДА БАТАРЕИ ОТ МУВ" }
-    ],
-    rungs: [
-      {
-        id: "vr1", y: 75, power: false,
-        wires: [
-          { x1: 60, x2: 180, num: "пр.560" },
-          { x1: 240, x2: 430, num: "пр.125,145" },
-          { x1: 490, x2: 680, num: "пр.133,111" },
-          { x1: 740, x2: 880, num: "пр.112" },
-          { x1: 940, x2: 1040, num: "пр.973 (2/11)" }
-        ],
-        terms: [{ x: 585, label: "3/1-3/2" }],
-        comps: [
-          { id: "v_ru4", x: 210, type: "no", label: "з.к. РУ4", sub: "Дизель запущен" },
-          { id: "v_sp1", x: 460, type: "no", label: "SP1 (РДМ)", sub: ">1.7 кгс/см2" },
-          { id: "v_d1_nc", x: 710, type: "nc", label: "р.к. Д1", sub: "Пуск окончен" },
-          { id: "v_ku17", x: 910, type: "coil", label: "КУ17", sub: "Конт.упр." }
-        ]
-      },
-      {
-        id: "vr2", y: 155, power: false,
-        wires: [
-          { x1: 60, x2: 180, num: "пр.6000,6043" },
-          { x1: 240, x2: 410, num: "пр.6044" },
-          { x1: 470, x2: 640, num: "пр.6050" },
-          { x1: 700, x2: 860, num: "пр.6073,6070" },
-          { x1: 920, x2: 1040, num: "минус 2/4" }
-        ],
-        terms: [{ x: 120, label: "3/37" }],
-        comps: [
-          { id: "v_ku17_k", x: 210, type: "no", label: "с.к. КУ17", sub: "Замкнут" },
-          { id: "v_sf3", x: 440, type: "switch", label: "SF3 «Возб.»", sub: "Автомат" },
-          { id: "v_sa1", x: 670, type: "nc", label: "SA1 «Раб.»", sub: "Тумблер реж." },
-          { id: "v_km1", x: 890, type: "coil", label: "р.к.РНП → КМ1", sub: "Конт. ВСТ" }
-        ]
-      },
-      {
-        id: "vr3", y: 315, power: true,
-        wires: [
-          { x1: 60, x2: 180, num: "пр.6042,6032" },
-          { x1: 240, x2: 430, num: "пр.6034,ДЗБ" },
-          { x1: 490, x2: 680, num: "пр.6041" },
-          { x1: 740, x2: 880, num: "пр.110,ША3,108" },
-          { x1: 940, x2: 1040, num: "пр.6068 (2/4)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "v_km1_k", x: 210, type: "no", label: "с.к. КМ1", sub: "Силовой" },
-          { id: "v_pwm", x: 460, type: "coil", label: "ШИМ УСТА", sub: "Регулятор 75В" },
-          { id: "v_vst_f", x: 710, type: "resistor", label: "Обм. ВСТ F1-F2", sub: "Возбудитель" },
-          { id: "v_svv2", x: 910, type: "resistor", label: "Резистор СВВ2", sub: "пр.6063" }
-        ]
-      },
-      {
-        id: "vr4", y: 395, power: true,
-        wires: [
-          { x1: 60, x2: 200, num: "ВСТ U1-U2 пр.6003" },
-          { x1: 260, x2: 460, num: "пр.6004" },
-          { x1: 520, x2: 720, num: "+150А пр.114" },
-          { x1: 780, x2: 1040, num: "пр.109 → СЗБ → ША1 → +АБ" }
-        ],
-        terms: [],
-        comps: [
-          { id: "v_pr6", x: 230, type: "fuse", label: "ПР6 (200А)", sub: "Предохр. ВСТ" },
-          { id: "v_muv", x: 490, type: "coil", label: "Выпрям. МУВ", sub: "Мост 75В" },
-          { id: "v_pp1", x: 750, type: "fuse", label: "ПП1 (125А)", sub: "Заряд АБ" }
-        ]
-      }
-    ],
-    steps: [
-      {
-        title: "Шаг 1: Отключение пускового контактора Д1 и включение КУ17",
-        chain: "З.к. РУ4 (пр.560) → з.к. SP1 (РДМ, пр.125-145) → зажимы 3/1,3/2 → пр.133,111 → р.к. Д1 → пр.112 → катушка КУ17 → минус 2/11.",
-        desc: "Как только пусковой контактор Д1 отпадает, его размыкающий контакт (пр.111-112) включает КУ17. КУ17 блокирует повторный пуск (р.к. в цепи РУ28) и замыкает силовой контакт в цепи SF3.",
-        activeRungs: ["vr1"],
-        onComps: ["v_ru4", "v_sp1", "v_d1_nc", "v_ku17", "v_ku17_k", "v_sa1"]
-      },
-      {
-        title: "Шаг 2: Включение автомата SF3 и контактора возбуждения КМ1",
-        chain: "Пр.6000 → зажим 3/37 → пр.6043 → с.к. КУ17 → пр.6044 → автомат SF3 «Возбуждение» → пр.6050 → тумблер SA1 «Рабочее» → пр.6073 → р.к. РНП → пр.6070 → катушка КМ1 → минус 2/4.",
-        desc: "КМ1 замыкает силовые контакты в цепи обмотки возбуждения ВСТ и подает сигнал в УСТА по проводу 5151.",
-        activeRungs: ["vr1", "vr2"],
-        onComps: ["v_ru4", "v_sp1", "v_d1_nc", "v_ku17", "v_ku17_k", "v_sf3", "v_sa1", "v_km1", "v_km1_k"]
-      },
-      {
-        title: "Шаг 3: Работа ШИМ УСТА, возбуждение ВСТ и заряд аккумуляторной батареи",
-        chain: "С.к. КМ1 → пр.6032 → ключи ШИМ УСТА → ДЗБ → пр.6041 → обмотка F1-F2 ВСТ → пр.110 → ША3 → СВВ2 → минус. Переменный ток ВСТ (U1-U2, пр.6003) → ПР6(200А) → выпрямитель МУВ → пр.114 → ПП1(125А) → СЗБ → заряд АБ.",
-        desc: "УСТА через датчик напряжения ДНБС поддерживает ровно 75 В в бортовой сети. При перезаряде УСТА включает реле РНП (пр.6066), которое размыкает цепь КМ1.",
-        activeRungs: ["vr1", "vr2", "vr3", "vr4"],
-        onComps: ["v_ru4", "v_sp1", "v_d1_nc", "v_ku17", "v_ku17_k", "v_sf3", "v_sa1", "v_km1", "v_km1_k", "v_pwm", "v_vst_f", "v_svv2", "v_pr6", "v_muv", "v_pp1"]
-      }
-    ]
-  },
-  {
-    id: "avariyn",
-    title: "3. Аварийный режим ВСТ (БАВ / БРН)",
-    height: 440,
-    headers: [
-      { y: 22, text: "ПЕРЕКЛЮЧЕНИЕ НА АВАРИЙНОЕ ВОЗБУЖДЕНИЕ (SA1, РКМ1, ВВ)" },
-      { y: 250, text: "РЕГУЛЯТОР НАПРЯЖЕНИЯ БРН (75В) И БЛОК АВАРИЙНОГО ВОЗБУЖДЕНИЯ БАВ" }
-    ],
-    rungs: [
-      {
-        id: "ar1", y: 80, power: false,
-        wires: [
-          { x1: 60, x2: 200, num: "пр.6044" },
-          { x1: 260, x2: 470, num: "пр.6050" },
-          { x1: 530, x2: 750, num: "пр.6011, ДР2" },
-          { x1: 810, x2: 1040, num: "пр.6058 (2/4)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "a_sf3", x: 230, type: "switch", label: "SF3 «Возб.»", sub: "Включен" },
-          { id: "a_sa1", x: 500, type: "no", label: "SA1 «Аварийн.»", sub: "Переключен" },
-          { id: "a_rkm1_vv", x: 780, type: "coil", label: "РКМ1 + Конт.ВВ", sub: "пр.6011, 6062" }
-        ]
-      },
-      {
-        id: "ar2", y: 295, power: true,
-        wires: [
-          { x1: 60, x2: 180, num: "пр.6059" },
-          { x1: 240, x2: 430, num: "пр.6041" },
-          { x1: 490, x2: 680, num: "пр.110,108,6017" },
-          { x1: 740, x2: 900, num: "пр.117" },
-          { x1: 960, x2: 1040, num: "пр.118 (2/6)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "a_vv_k", x: 210, type: "no", label: "с.к. ВВ", sub: "Силовой" },
-          { id: "a_vst_f", x: 460, type: "resistor", label: "Обм. ВСТ F1-F2", sub: "Возбуждение" },
-          { id: "a_rkm1_k", x: 710, type: "no", label: "з.к. РКМ1", sub: "Через СВВ1" },
-          { id: "a_brn", x: 930, type: "coil", label: "Регулятор БРН", sub: "Держит 75В" }
-        ]
-      },
-      {
-        id: "ar3", y: 375, power: true,
-        wires: [
-          { x1: 60, x2: 200, num: "1 поз: пр.6026" },
-          { x1: 260, x2: 460, num: "2 поз: пр.132,6029" },
-          { x1: 520, x2: 750, num: "пр.6024,6053" },
-          { x1: 810, x2: 1040, num: "Упр. тиристорами МУВ → Г" }
-        ],
-        terms: [],
-        comps: [
-          { id: "a_rkv_k", x: 230, type: "no", label: "з.к. РКВ (1п)", sub: "Конт.8 БАВ" },
-          { id: "a_ru2_k", x: 490, type: "no", label: "з.к. РУ2 (2п)", sub: "Конт.7 БАВ" },
-          { id: "a_bav", x: 780, type: "coil", label: "Блок БАВ", sub: "Угол откр. МУВ" }
-        ]
-      }
-    ],
-    steps: [
-      {
-        title: "Шаг 1: Перевод тумблера SA1 в «Аварийное» (включение РКМ1 и ВВ)",
-        chain: "На 0 поз. откл. SF3 → SA1 в «Аварийное» → вкл. SF3: пр.6044 → SF3 → пр.6050 → SA1 → пр.6011 → катушка РКМ1 и через диод ДР2 (пр.6062) катушка контактора ВВ.",
-        desc: "КМ1 отключается. Реле РКМ1 и контактор ВВ отключают неисправную систему УСТА и подключают резервные блоки БРН и БАВ.",
-        activeRungs: ["ar1"],
-        onComps: ["a_sf3", "a_sa1", "a_rkm1_vv", "a_vv_k", "a_rkm1_k"]
-      },
-      {
-        title: "Шаг 2: Регулирование напряжения 75 В блоком БРН",
-        chain: "SF3 → пр.6059 → с.к. ВВ → пр.6041 → обмотка F1-F2 ВСТ → пр.110 → ША3 → пр.108 → резистор СВВ1 → пр.6017 → з.к. РКМ1 → пр.117 → БРН → минус 2/6.",
-        desc: "БРН поддерживает напряжение 75 В и заряд АБ независимо от УСТА.",
-        activeRungs: ["ar1", "ar2"],
-        onComps: ["a_sf3", "a_sa1", "a_rkm1_vv", "a_vv_k", "a_vst_f", "a_rkm1_k", "a_brn"]
-      },
-      {
-        title: "Шаг 3: Возбуждение тягового генератора от блока БАВ (1–8 позиции)",
-        chain: "На 1-й поз. з.к. РКВ (пр.6027) запитывает конт.8 «Нагрузка» БАВ. На 2-й поз. з.к. РУ2 (пр.6029) запитывает конт.7 «2ПК» БАВ. Выход БАВ (пр.6024-6053) открывает тиристоры МУВ.",
-        desc: "С 3-й по 8-ю позицию ток возбуждения от БАВ фиксирован, а мощность генератора растет за счет увеличения оборотов дизеля. Электрический тормоз в этом режиме не работает!",
-        activeRungs: ["ar1", "ar2", "ar3"],
-        onComps: ["a_sf3", "a_sa1", "a_rkm1_vv", "a_vv_k", "a_vst_f", "a_rkm1_k", "a_brn", "a_rkv_k", "a_ru2_k", "a_bav"]
-      }
-    ]
-  },
-  {
-    id: "traction",
-    title: "4. Сбор схемы тяги и движение",
-    height: 580,
-    headers: [
-      { y: 22, text: "ЦЕПИ УПРАВЛЕНИЯ ТЯГОЙ: РЕВЕРСОР, РВ4, П1, П2, ЦЕПЬ ЗАЩИТ И КВ (75 В)" },
-      { y: 375, text: "СИЛОВАЯ ЦЕПЬ ВОЗБУЖДЕНИЯ ГЕНЕРАТОРА И ЯКОРЕЙ ТЭД 1–3, 4–6" }
-    ],
-    rungs: [
-      {
-        id: "tr1", y: 70, power: false,
-        wires: [
-          { x1: 60, x2: 160, num: "БЭЛ к.24 пр.175" },
-          { x1: 220, x2: 360, num: "пр.900,899" },
-          { x1: 420, x2: 560, num: "пр.2591,615" },
-          { x1: 620, x2: 760, num: "пр.181,2590" },
-          { x1: 820, x2: 910, num: "пр.168" },
-          { x1: 970, x2: 1040, num: "минус 2/8" }
-        ],
-        terms: [],
-        comps: [
-          { id: "t_epk", x: 190, type: "no", label: "ЭПК + РММ1", sub: "Замкнуты" },
-          { id: "t_sa2", x: 390, type: "switch", label: "SA2 «Машины»", sub: "Тумблер вкл." },
-          { id: "t_bk", x: 590, type: "no", label: "БК1-БК3 (ВВК)", sub: "Двери закр." },
-          { id: "t_ru2_nc", x: 790, type: "nc", label: "р.к.РУ2+КВТ1", sub: "1 позиция" },
-          { id: "t_rv4", x: 940, type: "coil", label: "Катушка РВ4", sub: "Реле времени" }
-        ]
-      },
-      {
-        id: "tr2", y: 145, power: false,
-        wires: [
-          { x1: 60, x2: 170, num: "БЭЛ к.23 пр.171" },
-          { x1: 230, x2: 390, num: "пр.174,1711" },
-          { x1: 450, x2: 610, num: "пр.197,193" },
-          { x1: 670, x2: 850, num: "пр.1720,1721" },
-          { x1: 910, x2: 1040, num: "пр.259 (2/8)" }
-        ],
-        terms: [{ x: 115, label: "3/13" }, { x: 530, label: "Р15/5" }],
-        comps: [
-          { id: "t_rev", x: 200, type: "no", label: "Реверсор «Р»", sub: "Развернут" },
-          { id: "t_rv4_k", x: 420, type: "no", label: "з.к. РВ4", sub: "пр.197-193" },
-          { id: "t_ru24_nc", x: 640, type: "nc", label: "р.к. РУ24", sub: "Нет прожига" },
-          { id: "t_p1p2", x: 880, type: "coil", label: "Катушки П1, П2", sub: "Поездные конт." }
-        ]
-      },
-      {
-        id: "tr3", y: 220, power: false,
-        wires: [
-          { x1: 60, x2: 150, num: "пр.181,178" },
-          { x1: 210, x2: 330, num: "пр.215,214" },
-          { x1: 390, x2: 520, num: "пр.212,182,183" },
-          { x1: 580, x2: 710, num: "пр.611,745,841" },
-          { x1: 770, x2: 890, num: "пр.612,187" },
-          { x1: 950, x2: 1040, num: "пр.185,РЗ (2/8)" }
-        ],
-        terms: [{ x: 455, label: "1/32" }, { x: 830, label: "10/10" }],
-        comps: [
-          { id: "t_rt_nc", x: 180, type: "nc", label: "р.к. РТ", sub: "Ток <1900А" },
-          { id: "t_sp2", x: 360, type: "no", label: "SP2 (Масло)", sub: ">2.0 кгс/см2" },
-          { id: "t_p1p2_k", x: 550, type: "no", label: "з.к. П1 и П2", sub: "Собраны" },
-          { id: "t_rt36_drt4", x: 740, type: "no", label: "РТ6,РТ3,ДРТ4", sub: "ТМ >3.2 атм" },
-          { id: "t_kv_rkv", x: 920, type: "coil", label: "КВ + РКВ", sub: "р.к. РЗ замкн." }
-        ]
-      },
-      {
-        id: "tr4", y: 425, power: true,
-        wires: [
-          { x1: 60, x2: 230, num: "МУВ +200А пр.91" },
-          { x1: 290, x2: 520, num: "пр.667, ША4(100А)" },
-          { x1: 580, x2: 820, num: "пр.95" },
-          { x1: 880, x2: 1040, num: "пр.96 (МУВ -200А)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "t_kv_pow", x: 260, type: "no", label: "с.к. КВ", sub: "Силовой конт." },
-          { id: "t_sha4", x: 550, type: "fuse", label: "Шунт ША4", sub: "100А" },
-          { id: "t_gen_f", x: 850, type: "resistor", label: "Обм. Г F1-F2", sub: "Независимая" }
-        ]
-      },
-      {
-        id: "tr5", y: 505, power: true,
-        wires: [
-          { x1: 60, x2: 180, num: "Ген. Я1 пр.14" },
-          { x1: 240, x2: 430, num: "пр.1004, ША5, пр.15" },
-          { x1: 490, x2: 690, num: "пр.18, Конт.Р, пр.19" },
-          { x1: 750, x2: 1040, num: "пр.22,23 → ША2(2000А) → Я2" }
-        ],
-        terms: [],
-        comps: [
-          { id: "t_p1p2_pow", x: 210, type: "no", label: "с.к. П1 / П2", sub: "Силовые" },
-          { id: "t_ted_arm", x: 460, type: "motor", label: "Якоря ТЭД 1-6", sub: "2 паралл. ветви" },
-          { id: "t_ted_f", x: 720, type: "resistor", label: "Обм. возб. ТЭД", sub: "C1-C2" }
-        ]
-      }
-    ],
-    steps: [
-      {
-        title: "Шаг 1: 1-я позиция КМ — Разворот реверсора и включение реле времени РВ4",
-        chain: "БЭЛ к.23 (пр.171) разворачивает Реверсор. БЭЛ к.24 → пр.175 → з.к. ЭПК → з.к. РММ1 → SA2 «Управление машинами» → р.к. РЭТ, РУ15 → з.к. БК1-БК3 (двери ВВК) → пр.181 → р.к. РУ2 → р.к. КВТ1 → пр.168 → катушка РВ4.",
-        desc: "РВ4 включается и замыкает контакт з.к. РВ4 (пр.197–193) во второй ветке.",
-        activeRungs: ["tr1"],
-        onComps: ["t_epk", "t_sa2", "t_bk", "t_ru2_nc", "t_rv4", "t_rev", "t_rv4_k", "t_ru24_nc", "t_rt_nc", "t_sp2", "t_rt36_drt4"]
-      },
-      {
-        title: "Шаг 2: Включение поездных контакторов П1 и П2",
-        chain: "Пр.171 → зажим 3/13 → пр.174 → вспом. контакт Реверсора → пр.1711 → разъем Р15/5 → пр.197 → з.к. РВ4 → пр.193,1720 → р.к. РУ24 → пр.1721 → переключатель ОМ(I+II) → катушки П1 и П2 → минус 2/8.",
-        desc: "Силовые контакты П1 и П2 подключают две параллельные группы ТЭД (1-2-3 и 4-5-6) к тяговому генератору, а вспомогательные з.к. П1 и П2 замыкают цепь в 3-й ветке.",
-        activeRungs: ["tr1", "tr2"],
-        onComps: ["t_epk", "t_sa2", "t_bk", "t_ru2_nc", "t_rv4", "t_rev", "t_rv4_k", "t_ru24_nc", "t_p1p2", "t_p1p2_k", "t_p1p2_pow", "t_rt_nc", "t_sp2", "t_rt36_drt4"]
-      },
-      {
-        title: "Шаг 3: Проверка цепочки защит и включение контактора КВ и реле РКВ",
-        chain: "Пр.181 → р.к. РТ (пр.178-215) → SP2 (масло >2 атм, пр.214-213) → зажим 1/32 (пр.212) → з.к. П1 (пр.182) → з.к. П2 (пр.183) → р.к. Д1, РУ24, РУ14 → пр.611,745 → р.к. РТ6 (масло <75°) → р.к. РТ3 (вода <90°) → пр.841 → з.к. ДРТ4 (ТМ >3.2 атм) → пр.612,187 → катушки КВ и РКВ → р.к. РЗ (пр.185-1970) → минус 2/8.",
-        desc: "КВ и РКВ включаются! З.к. КВ (пр.181–189) шунтирует р.к. РУ2, чтобы при наборе 2-й позиции схема не разобралась.",
-        activeRungs: ["tr1", "tr2", "tr3"],
-        onComps: ["t_epk", "t_sa2", "t_bk", "t_ru2_nc", "t_rv4", "t_rev", "t_rv4_k", "t_ru24_nc", "t_p1p2", "t_rt_nc", "t_sp2", "t_p1p2_k", "t_rt36_drt4", "t_kv_rkv", "t_kv_pow", "t_p1p2_pow"]
-      },
-      {
-        title: "Шаг 4: Возбуждение генератора от МУВ и подача тока на ТЭД",
-        chain: "С.к. КВ (пр.91–667) подает ток от МУВ через ША4 в обмотку F1-F2 генератора (пр.95–96). Силовой ток: Я1 → пр.14 → с.к. П1/П2 → ША5 → якоря ТЭД → реверсор → обмотки возбуждения ТЭД → ША2(2000А) → Я2.",
-        desc: "УСТА управляет тиристорами МУВ по характеристике мощности, а с 3-й позиции через клапаны ДВ1–ДВ4 ЭСУВТ увеличивает обороты дизеля.",
-        activeRungs: ["tr1", "tr2", "tr3", "tr4", "tr5"],
-        onComps: ["t_epk", "t_sa2", "t_bk", "t_ru2_nc", "t_rv4", "t_rev", "t_rv4_k", "t_ru24_nc", "t_p1p2", "t_rt_nc", "t_sp2", "t_p1p2_k", "t_rt36_drt4", "t_kv_rkv", "t_kv_pow", "t_sha4", "t_gen_f", "t_p1p2_pow", "t_ted_arm", "t_ted_f"]
-      }
-    ]
-  },
-  {
-    id: "shunt",
-    title: "5. Ослабление поля (Ш1, Ш2, РВ6)",
-    height: 480,
-    headers: [
-      { y: 22, text: "ЦЕПИ АВТОМАТИЧЕСКОГО УПРАВЛЕНИЯ ПЕРЕХОДАМИ ОТ УСТА (РУ40, РВ6, Ш1, Ш2)" },
-      { y: 265, text: "СИЛОВАЯ СХЕМА ШУНТИРОВАНИЯ ОБМОТОК ВОЗБУЖДЕНИЯ ТЭД (СШ1, СШ2)" }
-    ],
-    rungs: [
-      {
-        id: "sr1", y: 75, power: false,
-        wires: [
-          { x1: 60, x2: 190, num: "SA2 → пр.207" },
-          { x1: 250, x2: 460, num: "пр.5014,5015(В5)" },
-          { x1: 520, x2: 730, num: "Вых.УСТА пр.5013" },
-          { x1: 790, x2: 910, num: "пр.1715,211" },
-          { x1: 970, x2: 1040, num: "минус 2/5" }
-        ],
-        terms: [{ x: 355, label: "1/20" }, { x: 625, label: "1/22" }],
-        comps: [
-          { id: "s_sa3", x: 220, type: "switch", label: "SA3 «Переходы»", sub: "Включен" },
-          { id: "s_usta", x: 490, type: "coil", label: "УСТА (5-8 поз)", sub: "ДТ1, ДН1 (20км/ч)" },
-          { id: "s_ru40", x: 760, type: "coil", label: "Реле РУ40", sub: "Вкл. 1 ступени" },
-          { id: "s_rv6", x: 940, type: "coil", label: "Реле РВ6", sub: "Задержка 1.5с" }
-        ]
-      },
-      {
-        id: "sr2", y: 155, power: false,
-        wires: [
-          { x1: 60, x2: 200, num: "1/8 пр.136,2000" },
-          { x1: 260, x2: 470, num: "пр.2001,1716" },
-          { x1: 530, x2: 740, num: "УСТА(32км/ч) пр.5012" },
-          { x1: 800, x2: 1040, num: "пр.208 → Ш2 → минус 2/6" }
-        ],
-        terms: [{ x: 635, label: "1/24" }],
-        comps: [
-          { id: "s_rv6_k", x: 230, type: "no", label: "з.к. РВ6", sub: "Удерж. 1.5с" },
-          { id: "s_sh1_c", x: 500, type: "coil", label: "Вентиль Ш1", sub: "1 ступень ОП" },
-          { id: "s_sh2_c", x: 770, type: "coil", label: "Вентиль Ш2", sub: "2 ступень ОП" }
-        ]
-      },
-      {
-        id: "sr3", y: 330, power: true,
-        wires: [
-          { x1: 60, x2: 200, num: "Якоря ТЭД пр.19" },
-          { x1: 260, x2: 480, num: "Осн.поле (48% / 25%)" },
-          { x1: 540, x2: 750, num: "Ветвь Ш1 (пр.20-45)" },
-          { x1: 810, x2: 1040, num: "Ветвь Ш2 → ША2 → Я2" }
-        ],
-        terms: [],
-        comps: [
-          { id: "s_ted_w", x: 230, type: "resistor", label: "Обм. возб. ТЭД", sub: "С1-С2" },
-          { id: "s_ssh1", x: 510, type: "no", label: "с.к.Ш1 + СШ1", sub: "48% тока в ОВ" },
-          { id: "s_ssh2", x: 780, type: "no", label: "с.к.Ш2 + СШ2", sub: "25% тока в ОВ" }
-        ]
-      }
-    ],
-    steps: [
-      {
-        title: "Шаг 1: Включение 1-й ступени ослабления поля Ш1 (~20 км/ч, с 5-й позиции)",
-        chain: "SA3 «Управление переходами» → пр.207 → зажим 1/20 → пр.5015(В5 УСТА). При ~20 км/ч УСТА выдает плюс по пр.5013 → зажим 1/22 → пр.1715,211 → катушка РУ40 → включает РВ6 (пр.2005). З.к. РВ6 (пр.2000-2001-1716) включает вентиль Ш1.",
-        desc: "Силовые контакты Ш1 подключают резисторы СШ1 параллельно обмоткам возбуждения ТЭД. В обмотках остается 48% тока якорей.",
-        activeRungs: ["sr1", "sr2", "sr3"],
-        onComps: ["s_sa3", "s_usta", "s_ru40", "s_rv6", "s_rv6_k", "s_sh1_c", "s_ted_w", "s_ssh1"]
-      },
-      {
-        title: "Шаг 2: Включение 2-й ступени Ш2 (~32 км/ч) и защита РВ6 при сбросе нагрузки",
-        chain: "Через ≥10 сек при ~32 км/ч УСТА подает питание по пр.5012 → зажим 1/24 → пр.208 → катушка вентиля Ш2 → минус 2/6.",
-        desc: "Параллельно СШ1 подключаются резисторы СШ2 (в обмотках ТЭД остается 25% тока). При резком сбросе КМ ниже 4-й позиции Ш2 отключается сразу, а РВ6 удерживает Ш1 еще 1,5 секунды, защищая контакты от дуги.",
-        activeRungs: ["sr1", "sr2", "sr3"],
-        onComps: ["s_sa3", "s_usta", "s_ru40", "s_rv6", "s_rv6_k", "s_sh1_c", "s_sh2_c", "s_ted_w", "s_ssh1", "s_ssh2"]
-      }
-    ]
-  },
-  {
-    id: "protect",
-    title: "6. Цепи защиты (РЗ, SL, РУ24)",
-    height: 440,
-    headers: [
-      { y: 22, text: "РЕЛЕ ЗАЗЕМЛЕНИЯ РЗ (БВЗ, ВРЗ1, ВРЗ2), ДИФМАНОМЕТР КАРТЕРА SL И ПРОЖИГ РУ24" }
-    ],
-    rungs: [
-      {
-        id: "pr1", y: 85, power: false,
-        wires: [
-          { x1: 60, x2: 190, num: "Силов.цепь >80В" },
-          { x1: 250, x2: 470, num: "пр.1062,46,1059" },
-          { x1: 530, x2: 750, num: "Удерж. пр.2775,1071" },
-          { x1: 810, x2: 1040, num: "Разрыв КВ пр.185-1970" }
-        ],
-        terms: [],
-        comps: [
-          { id: "p_vrz", x: 220, type: "switch", label: "ВРЗ1 + ВРЗ2", sub: "Рубильники РЗ" },
-          { id: "p_rz_w", x: 500, type: "coil", label: "Раб.кат. РЗ (БВЗ)", sub: "Сраб. 80-100В" },
-          { id: "p_sb11", x: 780, type: "nc", label: "SB11 Возврат РЗ", sub: "СРЗ3 пр.1069" }
-        ]
-      },
-      {
-        id: "pr2", y: 175, power: false,
-        wires: [
-          { x1: 60, x2: 200, num: "1/1 пр.2617,19Д" },
-          { x1: 260, x2: 480, num: "18Д пр.2611,2613" },
-          { x1: 540, x2: 760, num: "20Д пр.2612,2614" },
-          { x1: 820, x2: 1040, num: "Разрыв РУ12 пр.700-699" }
-        ],
-        terms: [{ x: 130, label: "Х2:19Д" }],
-        comps: [
-          { id: "p_sl6", x: 230, type: "no", label: "SL (6 мм в.ст.)", sub: "Сигнал картера" },
-          { id: "p_ru21", x: 510, type: "coil", label: "Реле РУ21 (VD)", sub: "Лампа на ПУ" },
-          { id: "p_sl29", x: 790, type: "coil", label: "SL(29мм) → РУ22", sub: "Стоп дизеля!" }
-        ]
-      },
-      {
-        id: "pr3", y: 265, power: false,
-        wires: [
-          { x1: 60, x2: 260, num: "40 мин ХХ: БЭЛ к.19" },
-          { x1: 320, x2: 620, num: "пр.1731" },
-          { x1: 680, x2: 1040, num: "пр.1733 → минус 2/12 (Запрет П1,П2,КВ)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "p_bel19", x: 290, type: "no", label: "БЭЛ к.19 (t>40°)", sub: "0-4 поз., рев.0" },
-          { id: "p_ru24", x: 650, type: "coil", label: "Реле РУ24 (Прожиг)", sub: "750 об/мин 10 мин" }
-        ]
-      }
-    ],
-    steps: [
-      {
-        title: "Шаг 1: Срабатывание реле заземления РЗ (пробой изоляции >80–100 В)",
-        chain: "Пробой на корпус → мост БВЗ → ВРЗ1(пр.1062) / ВРЗ2(пр.46-1059) → рабочая катушка РЗ → корпус. РЗ становится на защелку (удерж. катушка пр.2775 → р.к. SB11 → пр.1071 → СРЗ3) и размыкает контакт пр.185-1970 в цепи КВ.",
-        desc: "Как найти место пробоя: на 0 поз. отключить ВРЗ2, нажать SB11 «Возврат РЗ», дать 1-2 поз. (до 100В). Выбило снова — пробой в ПЛЮСЕ; не выбило — пробой в МИНУСЕ.",
-        activeRungs: ["pr1"],
-        onComps: ["p_vrz", "p_rz_w", "p_sb11"]
-      },
-      {
-        title: "Шаг 2: Давление газов в картере (Дифманометр SL → РУ21 и РУ22)",
-        chain: "Пр.2617 → 19Д(Х2) → при 6 мм вод.ст. замыкается SL(18Д, пр.2613) → РУ21 (зажигает лампы VD). При 29 мм вод.ст. замыкается SL(20Д, пр.2614) → РУ22 → размыкает р.к. РУ22 (пр.700-699) в цепи РУ12 — дизель останавливается!",
-        desc: "Двухступенчатая защита картера предупреждает машиниста при 6 мм вод.ст. и глушит дизель при 29 мм вод.ст.",
-        activeRungs: ["pr2"],
-        onComps: ["p_sl6", "p_ru21", "p_sl29"]
-      },
-      {
-        title: "Шаг 3: Автоматический прожиг выхлопного коллектора (Реле РУ24)",
-        chain: "После 40 мин работы на ХХ (0-4 поз., реверсор в нейтрали, t масла >40°C) БЭЛ (к.19) по пр.1731 включает РУ24.",
-        desc: "Размыкающие контакты РУ24 (пр.1720-1721 и 1734-1735) блокируют сбор тяги, а дизель на 10 минут выходит на 750 об/мин.",
-        activeRungs: ["pr3"],
-        onComps: ["p_bel19", "p_ru24"]
-      }
-    ]
-  },
-  {
-    id: "brake",
-    title: "7. Реостатный тормоз (ЭТ)",
-    height: 480,
-    headers: [
-      { y: 22, text: "ЦЕПИ УПРАВЛЕНИЯ ЭЛЕКТРИЧЕСКИМ ТОРМОЗОМ (РЭТ, КВТ1, КТ1, КВ, ВЗТ)" },
-      { y: 265, text: "СИЛОВАЯ ЦЕПЬ ТОРМОЖЕНИЯ: ОБМОТКИ ТЭД И ТОРМОЗНЫЕ РЕЗИСТОРЫ БТР" }
-    ],
-    rungs: [
-      {
-        id: "br1", y: 75, power: false,
-        wires: [
-          { x1: 60, x2: 190, num: "БЭЛ к.38 → пр.5140" },
-          { x1: 250, x2: 460, num: "пр.2073,2074" },
-          { x1: 520, x2: 730, num: "пр.4035,4037" },
-          { x1: 790, x2: 910, num: "пр.1630,1632" },
-          { x1: 970, x2: 1040, num: "пр.1625 (2/8)" }
-        ],
-        terms: [{ x: 125, label: "15/7" }],
-        comps: [
-          { id: "b_rv4_nc", x: 220, type: "nc", label: "р.к. РВ4", sub: "Тяга разобр." },
-          { id: "b_sh1_nc", x: 490, type: "nc", label: "р.к. Ш1", sub: "Шунты откл." },
-          { id: "b_ret", x: 760, type: "coil", label: "Реле РЭТ", sub: "Тормозное" },
-          { id: "b_kvt_kt", x: 940, type: "coil", label: "КВТ1 → КТ1", sub: "Контакторы ЭТ" }
-        ]
-      },
-      {
-        id: "br2", y: 155, power: false,
-        wires: [
-          { x1: 60, x2: 200, num: "БЭЛ к.20 пр.2853" },
-          { x1: 260, x2: 480, num: "пр.2854,2834" },
-          { x1: 540, x2: 760, num: "пр.2830,183,187" },
-          { x1: 820, x2: 1040, num: "Сброс <100А: пр.5138→4041" }
-        ],
-        terms: [{ x: 130, label: "14/5" }],
-        comps: [
-          { id: "b_drt12", x: 230, type: "nc", label: "р.к. ДРТ1, ДРТ2", sub: "ТЦ < 0.5 атм" },
-          { id: "b_kv_et", x: 510, type: "coil", label: "КВ и РКВ (ЭТ)", sub: "Возб. генератора" },
-          { id: "b_vzt", x: 790, type: "coil", label: "Вентиль ВЗТ", sub: "Замещение в ТЦ" }
-        ]
-      },
-      {
-        id: "br3", y: 330, power: true,
-        wires: [
-          { x1: 60, x2: 200, num: "Ген. Я1 → с.к.КВТ1" },
-          { x1: 260, x2: 500, num: "пр.1008,1010,64" },
-          { x1: 560, x2: 780, num: "Якоря ТЭД пр.1005" },
-          { x1: 840, x2: 1040, num: "пр.1006,1007 (БТР на крыше)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "b_kvt_pow", x: 230, type: "no", label: "с.к.КВТ1 + СШ2", sub: "Пит. обмоток ТЭД" },
-          { id: "b_kt1_pow", x: 530, type: "no", label: "с.к. КТ1", sub: "Силовой тормозн." },
-          { id: "b_btr", x: 810, type: "resistor", label: "Резисторы БТР", sub: "Гашение энергии" }
-        ]
-      }
-    ],
-    steps: [
-      {
-        title: "Шаг 1: Включение реле РЭТ и контакторов КВТ1, КТ1",
-        chain: "БЭЛ к.38 → УСТА → пр.5140 → зажим 15/7 → пр.2073 → р.к. РВ4 → пр.4035 → р.к. Ш1 → пр.4037 → катушка РЭТ. З.к. РЭТ (пр.1630-1632) включает КВТ1, а з.к. КВТ1 (пр.1624-1625) включает КТ1.",
-        desc: "Схема проверяет, что тяга полностью разобрана (РВ4 и Ш1 отпущены), после чего КВТ1 подключает обмотки возбуждения ТЭД к генератору, а КТ1 подключает якоря ТЭД к тормозным резисторам БТР.",
-        activeRungs: ["br1", "br3"],
-        onComps: ["b_rv4_nc", "b_sh1_nc", "b_ret", "b_kvt_kt", "b_drt12", "b_kvt_pow", "b_kt1_pow"]
-      },
-      {
-        title: "Шаг 2: Включение КВ в режиме ЭТ (40–5 км/ч) и вентиль замещения ВЗТ",
-        chain: "БЭЛ к.20 → пр.2853 → ДР35 → зажим 14/5 → р.к. РКМ1 → р.к. ДРТ2, ДРТ1 (ТЦ <0.5 атм) → пр.183 → цепочка защит → пр.187 → КВ и РКВ. При падении скорости до 5 км/ч (ток <100А) УСТА по пр.5138→4041 включает ВЗТ.",
-        desc: "ТЭД работают как генераторы, гася энергию на БТР. При снижении эффективности ЭТ (или срыве) УСТА включает вентиль ВЗТ, подавая воздух в тормозные цилиндры (1,8–2,0 кгс/см²).",
-        activeRungs: ["br1", "br2", "br3"],
-        onComps: ["b_rv4_nc", "b_sh1_nc", "b_ret", "b_kvt_kt", "b_drt12", "b_kv_et", "b_vzt", "b_kvt_pow", "b_kt1_pow", "b_btr"]
-      }
-    ]
-  },
-  {
-    id: "cooler",
-    title: "8. Холодильная камера (САРТ)",
-    height: 480,
-    headers: [
-      { y: 22, text: "АВТОМАТИЧЕСКОЕ И РУЧНОЕ УПРАВЛЕНИЕ ЖАЛЮЗИ И ВЕНТИЛЯТОРОМ ХОЛОДИЛЬНИКА (РТ1–РТ7, РУ19, ВП1–ВП5)" }
-    ],
-    rungs: [
-      {
-        id: "cr1", y: 80, power: false,
-        wires: [
-          { x1: 60, x2: 190, num: "1/1 → пр.320" },
-          { x1: 250, x2: 470, num: "пр.321" },
-          { x1: 530, x2: 750, num: "пр.323, 325" },
-          { x1: 810, x2: 1040, num: "минус 2/10" }
-        ],
-        terms: [],
-        comps: [
-          { id: "c_sa_avt", x: 220, type: "switch", label: "Тумб. «Автомат»", sub: "САРТ вкл." },
-          { id: "c_rt2_5", x: 500, type: "no", label: "РТ2(75°) / РТ5(63°)", sub: "Вода / Масло" },
-          { id: "c_vp1_2", x: 780, type: "coil", label: "Вентили ВП1, ВП2", sub: "Бок.жалюзи В/М" }
-        ]
-      },
-      {
-        id: "cr2", y: 165, power: false,
-        wires: [
-          { x1: 60, x2: 230, num: "пр.321" },
-          { x1: 290, x2: 560, num: "Наддув >57°C" },
-          { x1: 620, x2: 1040, num: "Диод → ВП4 + ВП5 (минус)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "c_rt7", x: 260, type: "no", label: "SK4 (РТ7 57°C)", sub: "Вода наддува" },
-          { id: "c_vp4_5", x: 590, type: "coil", label: "ВП4 + ВП5", sub: "Жалюзи наддува + Верх." }
-        ]
-      },
-      {
-        id: "cr3", y: 250, power: false,
-        wires: [
-          { x1: 60, x2: 200, num: "пр.321" },
-          { x1: 260, x2: 490, num: "Вода 80° / Масло 69°" },
-          { x1: 550, x2: 780, num: "Вкл. РУ19 и ВП5" },
-          { x1: 840, x2: 1040, num: "з.к.РУ19 → ВП3 (Фрикцион)" }
-        ],
-        terms: [],
-        comps: [
-          { id: "c_rt1_4", x: 230, type: "no", label: "РТ1(80°) / РТ4(69°)", sub: "SK1.3 / SK2.1" },
-          { id: "c_ru19", x: 520, type: "coil", label: "Реле РУ19 + ВП5", sub: "Верхние жалюзи" },
-          { id: "c_vp3", x: 810, type: "coil", label: "Вентиль ВП3", sub: "Вкл. вентилятора" }
-        ]
-      },
-      {
-        id: "cr4", y: 340, power: false,
-        wires: [
-          { x1: 60, x2: 230, num: "Цепь КВ: пр.745" },
-          { x1: 290, x2: 560, num: "пр.746, 747" },
-          { x1: 620, x2: 1040, num: "пр.841 → КВ (При разрыве: сброс тяги + Зуммер)" }
-        ],
-        terms: [{ x: 140, label: "10/9" }, { x: 750, label: "9/10" }],
-        comps: [
-          { id: "c_rt6", x: 260, type: "nc", label: "SK3 (РТ6 <75°C)", sub: "Перегрев масла" },
-          { id: "c_rt3", x: 590, type: "nc", label: "SK1.2 (РТ3 <90°C)", sub: "Перегрев воды" }
-        ]
-      }
-    ],
-    steps: [
-      {
-        title: "Шаг 1: Открытие боковых жалюзи воды (ВП1), масла (ВП2) и наддува (ВП4, ВП5)",
-        chain: "Пр.320,321 → при t воды 75°C замыкается SK1.1(РТ2) → ВП1. При t масла 63°C замыкается SK2.2(РТ5) → ВП2. При t воды наддува 57°C замыкается SK4(РТ7) → ВП4 и через диод ВП5 (верхние жалюзи).",
-        desc: "Створки боковых и верхних жалюзи открываются пневмоцилиндрами для обдува секций радиатора.",
-        activeRungs: ["cr1", "cr2", "cr4"],
-        onComps: ["c_sa_avt", "c_rt2_5", "c_vp1_2", "c_rt7", "c_vp4_5", "c_rt6", "c_rt3"]
-      },
-      {
-        title: "Шаг 2: Включение вентилятора холодильника (РТ1 / РТ4 → РУ19 → ВП3)",
-        chain: "При нагреве воды до 80°C (РТ1) или масла до 69°C (РТ4) включаются катушка реле РУ19 и вентиль верхних жалюзи ВП5. З.к. РУ19 запитывает вентиль ВП3 (включение фрикционной муфты вентилятора).",
-        desc: "Воздух поступает в цилиндр фрикциона — включается вентилятор холодильной камеры. При перегреве воды >90°C (РТ3) или масла >75°C (РТ6) размыкается 4-я ветка (пр.745–841) и отключается КВ.",
-        activeRungs: ["cr1", "cr2", "cr3", "cr4"],
-        onComps: ["c_sa_avt", "c_rt2_5", "c_vp1_2", "c_rt7", "c_vp4_5", "c_rt1_4", "c_ru19", "c_vp3", "c_rt6", "c_rt3"]
-      }
-    ]
-  }
-];
+    // Все аппараты на своих заводских местах
+    nodes: [
+      { id: "bel_4", x: 115, y: 245, type: "no", label: "БЭЛ к.4", sub: "0 поз. КМ" },
+      { id: "ru12_self", x: 280, y: 310, type: "no", label: "з.к. РУ12", sub: "734-733" },
 
-const JUMPERS = [
-  { title: "1. Не включается РУ12 при нажатии «Пуск дизеля»", desc: "Обрыв цепи кнопок Стоп ПУ1/ПУ2 (пр.430-7401), сработало реле картера РУ22 (пр.700-699) или ПЧТ (пр.699-692).", fix: "Проверить р.к. РУ22 и ПЧТ. Для запуска подать плюс с зажима 14/4 (или 1/1) на зажим 3/30 (пр.700) или напрямую на пр.692 (катушка РУ12)." },
-  { title: "2. Не включается пусковой контактор Д1 после 40 с прокачки", desc: "Не замкнулся контакт блокировки тормоза БУК (пр.127-128), концевик ВПУ (пр.239-243) или р.к. КВ (пр.425-337).", fix: "Убедиться, что ВПУ выведено! Временная перемычка на время пуска: с пр.425 (после з.к. РУ5) на пр.251 (катушка Д1)." },
-  { title: "3. Дизель запускается, но после отключения Д1 сразу глохнет", desc: "Не замыкается датчик давления масла SP1 (РДМ, 1.7-1.8 кгс/см²), из-за чего не включается РУ4 и теряется питание РЭР.", fix: "Проверить давление масла по манометру! Если в норме — поставить перемычку на разъеме Х1 (зажимы 1Д–2Д) или между пр.145 и 125." },
-  { title: "4. Нет зарядки АБ при работающем дизеле", desc: "Не включился КУ17 (р.к. Д1 пр.111-112) или КМ1 (сработало РНП пр.6073-6070, выбит SF3 или сгорели ПР6 200А / ПП1 125А).", fix: "Перейти на «Аварийное возбуждение» (на 0 поз. откл. SF3 → тумблер SA1 в «Аварийное» → вкл. SF3)." },
-  { title: "5. Не собирается схема тяги (не включаются П1, П2 или КВ)", desc: "Открыта дверь ВВК (БК1-БК3), включен прожиг РУ24, давление масла <2 атм (SP2), давление в ТМ <3,2 атм (ДРТ4), перегрев РТ3/РТ6 или сработало РЗ.", fix: "Для вывода поезда с перегона при ложном отказе датчика (если параметры в норме): перемычка на рейке 10 между зажимами 10/9 и 10/10 (пр.611–612)." },
-  { title: "6. Определение места пробоя на корпус (Реле заземления РЗ)", desc: "Сработало РЗ (разомкнулся контакт в пр.185-1970, сброс нагрузки).", fix: "На 0 поз. отключить рубильник ВРЗ2, нажать SB11 «Возврат РЗ», дать 1-2 поз. (до 100В). Выбивает — пробой в ПЛЮСЕ; держит — пробой в МИНУСЕ." },
-  { title: "7. Отказ автоматики холодильника САРТ (не вкл. вентилятор / жалюзи)", desc: "Неисправность термореле РТ1/РТ4, реле РУ19 или вентиля ВП3.", fix: "Перевести тумблеры жалюзи воды, масла, верхних жалюзи и вентилятора из положения «Автоматическое» в «Ручное»." },
-  { title: "8. Ложное срабатывание защиты по перегреву воды (РТ3) или масла (РТ6)", desc: "Температура в норме, но отключается КВ (разрыв цепи пр.745–746–841).", fix: "Поставить перемычку на клеммной рейке в ВВК между проводами 745 и 841 (зажимы 10/9 – 9/10), контролируя температуру по приборам!" }
-];
+      { id: "sb7", x: 120, y: 420, type: "no", label: "SB7 Пуск 1", sub: "Кнопка ПУ1" },
+      { id: "sb8_all", x: 440, y: 420, type: "nc", label: "SB8 Стоп", sub: "ПУ1 и ПУ2" },
+      { id: "ru22_nc", x: 610, y: 420, type: "nc", label: "р.к. РУ22", sub: "700-699" },
+      { id: "pcht_nc", x: 790, y: 420, type: "nc", label: "р.к. ПЧТ", sub: "699-692" },
+      { id: "ru12_c", x: 1040, y: 420, type: "coil", label: "РУ12", sub: "Катушка" },
 
-let currentTab = 0;
-let currentStep = 0;
-let autoTimer = null;
-let faultedComps = new Set();
+      { id: "ru16_nc", x: 460, y: 465, type: "nc", label: "р.к. РУ16", sub: "2782-561" },
+      { id: "ru12_k2", x: 680, y: 465, type: "no", label: "з.к. РУ12", sub: "561-575" },
+      { id: "ktn_c", x: 1040, y: 465, type: "coil", label: "КТН", sub: "Топл.насос" },
 
-function initApp() {
-  const tabsBar = document.getElementById("tabsBar");
-  SCHEMES.forEach((sch, idx) => {
-    const btn = document.createElement("button");
-    btn.className = "tab-btn" + (idx === 0 ? " active" : "");
-    btn.textContent = sch.title;
-    btn.onclick = () => selectTab(idx);
-    tabsBar.appendChild(btn);
-  });
-
-  const jmpBtn = document.createElement("button");
-  jmpBtn.className = "tab-btn";
-  jmpBtn.textContent = "9. Перемычки и Неисправности";
-  jmpBtn.onclick = () => selectTab(SCHEMES.length);
-  tabsBar.appendChild(jmpBtn);
-
-  renderJumpers();
-  selectTab(0);
-}
-
-function selectTab(idx) {
-  stopAuto();
-  currentTab = idx;
-  currentStep = 0;
-  faultedComps.clear();
-  updateFaultBtn();
-
-  document.querySelectorAll(".tab-btn").forEach((b, i) => b.classList.toggle("active", i === idx));
-
-  const isJumpers = idx === SCHEMES.length;
-  document.getElementById("controlsBar").style.display = isJumpers ? "none" : "flex";
-  document.getElementById("canvasBox").style.display = isJumpers ? "none" : "block";
-  document.getElementById("infoPanel").style.display = isJumpers ? "none" : "block";
-  document.getElementById("jumpersGrid").style.display = isJumpers ? "grid" : "none";
-
-  if (!isJumpers) {
-    renderDetailedScheme(SCHEMES[currentTab]);
-    updateStepState();
-  }
-}
-
-function renderDetailedScheme(sch) {
-  const svg = document.getElementById("schematicSvg");
-  svg.setAttribute("viewBox", `0 0 1120 ${sch.height}`);
-  svg.innerHTML = "";
-
-  // Левая шина (+75В / +АБ) и правая шина (-АБ)
-  svg.innerHTML += `
-    <line x1="60" y1="35" x2="60" y2="${sch.height - 25}" class="bus-plus"/>
-    <text x="60" y="25" fill="#f87171" font-size="12" font-weight="bold" text-anchor="middle">+75В / +АБ</text>
-    <line x1="1040" y1="35" x2="1040" y2="${sch.height - 25}" class="bus-minus"/>
-    <text x="1040" y="25" fill="#60a5fa" font-size="12" font-weight="bold" text-anchor="middle">-АБ (Минус)</text>
-  `;
-
-  // Заголовки секций
-  sch.headers.forEach(h => {
-    svg.innerHTML += `<text x="550" y="${h.y}" class="sec-header" text-anchor="middle">━━━ ${h.text} ━━━</text>`;
-  });
-
-  // Отрисовка каждой горизонтальной ветви (rung)
-  sch.rungs.forEach(r => {
-    // Соединительные провода между аппаратами
-    r.wires.forEach((w, wi) => {
-      const wid = `${r.id}_w${wi}`;
-      svg.innerHTML += `
-        <line id="${wid}_base" x1="${w.x1}" y1="${r.y}" x2="${w.x2}" y2="${r.y}" class="wire-base ${r.power ? 'power-thick' : ''}"/>
-        <line id="${wid}_flow" x1="${w.x1}" y1="${r.y}" x2="${w.x2}" y2="${r.y}" class="wire-flow"/>
-        <text x="${(w.x1 + w.x2) / 2}" y="${r.y - 8}" class="wire-tag">${w.num}</text>
-      `;
-    });
-
-    // Клеммные зажимы
-    r.terms.forEach(t => {
-      svg.innerHTML += `
-        <circle cx="${t.x}" cy="${r.y}" r="5" class="term-circle"/>
-        <text x="${t.x}" y="${r.y + 17}" class="term-text">[${t.label}]</text>
-      `;
-    });
-
-    // Аппараты (ширина каждого аппарата 60px: от x-30 до x+30)
-    r.comps.forEach(c => {
-      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      g.setAttribute("id", `comp_${c.id}`);
-      g.setAttribute("class", "comp-group");
-      g.setAttribute("transform", `translate(${c.x}, ${r.y})`);
-      g.onclick = () => toggleFault(c.id, c.label);
-
-      let inner = "";
-      if (c.type === "coil") {
-        // Катушка реле/контактора (ГОСТ прямоугольник с выводами)
-        inner = `
-          <line x1="-30" y1="0" x2="-22" y2="0" class="wire-base"/>
-          <line x1="22" y1="0" x2="30" y2="0" class="wire-base"/>
-          <rect x="-22" y="-15" width="44" height="30" rx="3" class="comp-shape"/>
-          <line x1="-10" y1="-15" x2="-10" y2="15" stroke="#475569" stroke-width="1"/>
-          <line x1="10" y1="-15" x2="10" y2="15" stroke="#475569" stroke-width="1"/>
-        `;
-      } else if (c.type === "no" || c.type === "btn" || c.type === "switch") {
-        // Нормально разомкнутый контакт / Кнопка / Тумблер (при срабатывании нож опускается!)
-        inner = `
-          <line x1="-30" y1="0" x2="-16" y2="0" class="wire-base"/>
-          <line x1="16" y1="0" x2="30" y2="0" class="wire-base"/>
-          <circle cx="-16" cy="0" r="3.5" class="comp-shape"/>
-          <circle cx="16" cy="0" r="3.5" class="comp-shape"/>
-          <line id="blade_${c.id}" x1="-16" y1="0" x2="15" y2="-14" class="contact-blade"/>
-        `;
-      } else if (c.type === "nc") {
-        // Нормально замкнутый контакт
-        inner = `
-          <line x1="-30" y1="0" x2="-16" y2="0" class="wire-base"/>
-          <line x1="16" y1="0" x2="30" y2="0" class="wire-base"/>
-          <circle cx="-16" cy="0" r="3.5" class="comp-shape"/>
-          <circle cx="16" cy="0" r="3.5" class="comp-shape"/>
-          <line x1="16" y1="-10" x2="16" y2="4" stroke="#94a3b8" stroke-width="2"/>
-          <line id="blade_${c.id}" x1="-16" y1="0" x2="16" y2="0" class="contact-blade"/>
-        `;
-      } else if (c.type === "fuse") {
-        // Предохранитель / Шунт
-        inner = `
-          <line x1="-30" y1="0" x2="30" y2="0" stroke="#94a3b8" stroke-width="2"/>
-          <rect x="-20" y="-9" width="40" height="18" class="comp-shape" fill="none"/>
-        `;
-      } else if (c.type === "motor") {
-        // Электродвигатель / Якорь генератора (круг с щетками)
-        inner = `
-          <line x1="-30" y1="0" x2="-20" y2="0" class="wire-base"/>
-          <line x1="20" y1="0" x2="30" y2="0" class="wire-base"/>
-          <rect x="-22" y="-5" width="5" height="10" fill="#cbd5e1"/>
-          <rect x="17" y="-5" width="5" height="10" fill="#cbd5e1"/>
-          <circle cx="0" cy="0" r="18" class="comp-shape"/>
-          <text x="0" y="4" fill="#38bdf8" font-size="11" font-weight="bold" text-anchor="middle">М/Г</text>
-        `;
-      } else if (c.type === "resistor") {
-        // Резистор / Обмотка возбуждения
-        inner = `
-          <line x1="-30" y1="0" x2="-22" y2="0" class="wire-base"/>
-          <line x1="22" y1="0" x2="30" y2="0" class="wire-base"/>
-          <rect x="-22" y="-10" width="44" height="20" class="comp-shape"/>
-          <path d="M -18 0 Q -12 -9 -6 0 T 6 0 T 18 0" fill="none" stroke="#38bdf8" stroke-width="1.8"/>
-        `;
-      }
-
-      inner += `
-        <text x="0" y="-20" class="comp-label">${c.label}</text>
-        <text x="0" y="27" class="comp-sub">${c.sub}</text>
-        <text id="fault_x_${c.id}" x="0" y="6" fill="#ef4444" font-size="22" font-weight="bold" text-anchor="middle" display="none">✖</text>
-      `;
-
-      g.innerHTML = inner;
-      svg.appendChild(g);
-    });
-  });
-}
-
-function toggleFault(compId, label) {
-  if (faultedComps.has(compId)) {
-    faultedComps.delete(compId);
-  } else {
-    faultedComps.add(compId);
-  }
-  updateFaultBtn();
-  updateStepState();
-}
-
-function clearAllFaults() {
-  faultedComps.clear();
-  updateFaultBtn();
-  updateStepState();
-}
-
-function updateFaultBtn() {
-  const btn = document.getElementById("clearFaultsBtn");
-  btn.style.display = faultedComps.size > 0 ? "inline-flex" : "none";
-}
-
-function updateStepState() {
-  const sch = SCHEMES[currentTab];
-  const step = sch.steps[currentStep];
-
-  document.getElementById("stepCounter").textContent = `Шаг ${currentStep + 1} / ${sch.steps.length}`;
-
-  let brokenNames = [];
-
-  sch.rungs.forEach(r => {
-    const rungShouldBeActive = step.activeRungs.includes(r.id);
-
-    // Проверяем, есть ли обрыв в этой ветке и на каком по счету аппарате
-    let faultIndex = -1;
-    r.comps.forEach((c, idx) => {
-      if (faultedComps.has(c.id) && faultIndex === -1) {
-        faultIndex = idx;
-        if (rungShouldBeActive) brokenNames.push(`${c.label} (${c.sub})`);
-      }
-    });
-
-    // Обновляем провода в ветке (ток доходит только ДО оборванного аппарата!)
-    r.wires.forEach((w, wi) => {
-      const baseEl = document.getElementById(`${r.id}_w${wi}_base`);
-      const flowEl = document.getElementById(`${r.id}_w${wi}_flow`);
-      const canFlow = rungShouldBeActive && (faultIndex === -1 || wi <= faultIndex);
-
-      if (baseEl) baseEl.classList.toggle("energized", canFlow);
-      if (flowEl) {
-        flowEl.classList.remove("active", "power-active");
-        if (canFlow) {
-          flowEl.classList.add(r.power ? "power-active" : "active");
-        }
-      }
-    });
-
-    // Обновляем аппараты и физический поворот ножей контактов
-    r.comps.forEach((c, idx) => {
-      const g = document.getElementById(`comp_${c.id}`);
-      const blade = document.getElementById(`blade_${c.id}`);
-      const fx = document.getElementById(`fault_x_${c.id}`);
-      const isFault = faultedComps.has(c.id);
-
-      if (fx) fx.setAttribute("display", isFault ? "block" : "none");
-      if (!g) return;
-
-      g.classList.toggle("fault", isFault);
-
-      // Аппарат включен, если он в списке onComps и до него не оборвана активная цепь
-      const blockedByFault = rungShouldBeActive && faultIndex !== -1 && idx >= faultIndex;
-      const isOn = !isFault && !blockedByFault && step.onComps.includes(c.id);
-
-      g.classList.toggle("on", isOn);
-
-      // Живое переключение контактов!
-      if (blade) {
-        if (c.type === "no" || c.type === "btn" || c.type === "switch") {
-          // Если включен — нож опускается горизонтально, замыкая цепь
-          blade.setAttribute("y2", isOn ? "0" : "-14");
-        } else if (c.type === "nc") {
-          // Если размыкающий контакт НЕ в списке onComps на этом шаге (или оборван) — он размыкается!
-          const closed = !isFault && step.onComps.includes(c.id);
-          blade.setAttribute("y2", closed ? "0" : "-13");
-        }
-      }
-    });
-  });
-
-  const panel = document.getElementById("infoPanel");
-  if (brokenNames.length > 0) {
-    panel.classList.add("fault-alert");
-    document.getElementById("stepTitle").textContent = `⚠️ ОБРЫВ ЦЕПИ! Отказал аппарат: ${brokenNames.join(", ")}`;
-    document.getElementById("stepChain").textContent = `Ток остановлен перед неисправным элементом [${brokenNames[0]}]. Дальнейший сбор схемы невозможен!`;
-    document.getElementById("stepDesc").textContent = `Чтобы продолжить работу схемы, кликните повторно по неисправному аппарату (или нажмите «Устранить обрывы»), либо посмотрите способ постановки аварийной перемычки во вкладке №9.`;
-  } else {
-    panel.classList.remove("fault-alert");
-    document.getElementById("stepTitle").textContent = step.title;
-    document.getElementById("stepChain").textContent = step.chain;
-    document.getElementById("stepDesc").textContent = step.desc;
-  }
-}
-
-function nextStep() {
-  const sch = SCHEMES[currentTab];
-  currentStep = (currentStep + 1) % sch.steps.length;
-  updateStepState();
-}
-
-function prevStep() {
-  const sch = SCHEMES[currentTab];
-  currentStep = (currentStep - 1 + sch.steps.length) % sch.steps.length;
-  updateStepState();
-}
-
-function resetScheme() {
-  stopAuto();
-  currentStep = 0;
-  updateStepState();
-}
-
-function toggleAuto() {
-  if (autoTimer) {
-    stopAuto();
-  } else {
-    document.getElementById("autoBtn").classList.add("auto-active");
-    document.getElementById("autoBtn").textContent = "⏸ Пауза";
-    autoTimer = setInterval(nextStep, 3500);
-  }
-}
-
-function stopAuto() {
-  if (autoTimer) {
-    clearInterval(autoTimer);
-    autoTimer = null;
-  }
-  const btn = document.getElementById("autoBtn");
-  if (btn) {
-    btn.classList.remove("auto-active");
-    btn.textContent = "⏯ Автозапуск";
-  }
-}
-
-function renderJumpers() {
-  const grid = document.getElementById("jumpersGrid");
-  grid.innerHTML = JUMPERS.map(j => `
-    <div class="jumper-card">
-      <h3>${j.title}</h3>
-      <p><strong>Симптом / Причина:</strong> ${j.desc}</p>
-      <p><strong>Выход из положения (Перемычка):</strong> ${j.fix}</p>
-    </div>
-  `).join("");
-}
-
-window.onload = initApp;
-</script>
-</body>
-</html>
+      { id: "sa15", x: 120, y: 515, type: "no", label: "SA15 ТН", sub: "Включен" },
+      { id: "ktn_k", x: 390, y: 515, type: "no", label: "з.к. КТН", sub: "148-885/150" },
+      { id: "ru4_nc", x: 690, y: 265, type: "nc", label: "р.к. РУ4", sub: "453-248" },
+      { id: "sh2_nc", x
